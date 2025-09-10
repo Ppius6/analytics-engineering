@@ -1,0 +1,1 @@
+This repository contains analytics engineering notes and sample projects. It covers a variety of tools, methodologies, and best practices relevant to analytics engineering. Use this space to explore concepts, document learnings, and experiment with different approaches in the field.
