@@ -1,0 +1,85 @@
+# dbt artifacts
+target/
+dbt_packages/
+logs/
+.dbt/
+
+# Database files
+*.db
+*.duckdb
+*.duckdb.wal
+
+# Virtual environments
+dbt-venv/
+venv/
+env/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# dbt profiles (if you accidentally put them in project)
+profiles.yml
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Node modules (if using dbt packages from npm)
+node_modules/
+
+# Backup files
+*.bak
+*.backup
+
+# CSV files with sensitive data (adjust as needed)
+# *.csv
+
+# Configuration files that might contain secrets
+# config/*.yml
+# config/*.yaml
