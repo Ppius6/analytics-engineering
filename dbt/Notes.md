@@ -186,3 +186,16 @@ SELECT
 FROM {{ source('my_source', 'source_table') }}
 ```
 
+## Hierarchical models
+- A hierarchy represents the dependencies between models in a dbt project; the relationship between source and transformed data.
+- Models can depend on other models, creating a directed acyclic graph (DAG) of transformations.
+- Hierarchies are defined using the Jinja template language within the model definition files. The `ref()` function is used to reference other models, establishing dependencies.
+- To define a dependency, we replace the table name in the query with two opening curly braces, then the `ref()` function, and finally the model name in single quotes, followed by two closing curly braces.
+
+```sql
+SELECT
+    customer_id,
+    order_id,
+    order_date
+FROM {{ ref('stg_orders') }}
+```
