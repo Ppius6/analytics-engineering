@@ -199,3 +199,82 @@ SELECT
     order_date
 FROM {{ ref('stg_orders') }}
 ```
+
+## Testing in dbt
+- A test is an assertion or validation of various dbt objects such as models, seeds, sources. Tests verify that the data is as expected.
+- Built-in tests include; `unique` to verify all values are unique, `not_null` to verify all values are not null, `accepted_values` to verify all values are within a specific list, `relationships` to verify a connection to a specific table / column. 
+- Model tests are defined in a YAML file within the models directory while other tests are defined in their respective directories. An example of the YAML structure for model tests:
+```yaml
+version: 2
+models:
+    - name: my_model
+        description: "This is my model"
+        columns:
+            - name: id
+            description: "The unique identifier for each record"
+            tests:
+                - unique
+                - not_null
+            - name: status
+            description: "The status of the record"
+            tests:
+                - accepted_values:
+                    values: ['active', 'inactive', 'pending']
+            - name: foreign_key_id
+            description: "The foreign key to another table"
+            tests:
+                - relationships:
+                    to: ref('another_model')
+                    field: id
+```
+- To run tests, use the command `dbt test`, which executes all defined tests and reports any failures or issues or `dbt test --select model_name` to run tests for a specific model.
+
+### Finding failing tests
+- When a test fails, dbt provides detailed information about the failure, including the model name. To find the specific issues in our data, we need to use the complied SQL code. This normally resides in the `target/compiled/<project_name>/models/model_properties.yml` directory.
+
+### Singular test
+A singular test is a custom data test within dbt, written as a SQL query, which returns the failing rows. 
+
+An example of a singular test:
+```sql
+SELECT *
+FROM {{ ref('my_model') }}
+WHERE id IS NULL
+```
+
+Test debugging can be done using a SQL editor to create the initial test query, place the query in a `.sql` file in the `tests` directory, and run the test using `dbt test --select test_name`. Finally, check any errors and update the test as needed.
+
+### Reusable tests
+Reusable tests are custom tests that can be defined once and applied to multiple models or columns. It is created using Jinja templates and stored in the `tests/generic` directory.
+
+A reusable test must be defined for each model that uses it in the `model_properties.yml` file.
+
+```yaml
+{% test check_gt_0(model, column_name) %}
+    SELECT *
+    FROM {{ model }}
+    WHERE {{ column_name }} > 0
+{% endtest %}
+```
+
+A reusable test can be applied to a model column as follows:
+```yaml
+version: 2
+models:
+    - name: my_model
+        columns:
+            - name: amount
+            tests:
+                - check_gt_0
+```
+
+Additional parameters can be passed to the reusable test as follows:
+```yaml
+{% test check_columns_unequal(model, column_a, column_b) %}
+
+    SELECT *
+    FROM {{ model }}
+    WHERE {{ column_a }} = {{ column_b }}
+    
+{% endtest %}
+```
