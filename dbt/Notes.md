@@ -278,3 +278,197 @@ Additional parameters can be passed to the reusable test as follows:
     
 {% endtest %}
 ```
+
+## DBT Sources
+Sources in dbt represent the ability to name and describe data loaded by the EL process. It is more of applying extra information to the data that is already in the warehouse. Note that dbt only handles the T (transform) in ELT.
+
+dbt sources are present to provide data lineage information. Data lineage describes the flow of data in a data warehouse which helps in validation, troubleshooting, and understanding the data.
+
+To give access a given source, we use the Jinja `source()` function in our model SQL files. The `source()` function takes two arguments: the source name and the table name.
+
+```sql
+SELECT *
+FROM {{ source('my_source', 'my_table') }}
+```
+
+Defining sources in dbt, we use a YAML file which can be the models/model_properties.yml file or a separate file in the models directory.
+
+Note that when it is named model_properties.yml, dbt only looks for a yml file for this information. The actual definition goes in the sources section of the yml file. 
+
+When defining a source;
+- Name the source starting with a `- name: <source_name>` option. This is usually the name of the database or schema.
+- Then define each source table with a `-name` option under the `tables:` section.
+
+Example of defining a source in a YAML file:
+```yaml
+version: 2
+
+sources:
+    - name: raw
+      tables: 
+        - name: phone_orders
+        - name: web_orders
+```
+
+Note: This differs based on the data warehouse type.
+
+### Accessing sources
+To access a source in a dbt model, we use the `source()` function within the SQL code of the model. The `source()` function takes two arguments: the source name and the table name.
+
+The function returns the proper name to access the source table in the data warehouse.
+
+Example of accessing a source in a dbt model:
+```sql
+SELECT *
+FROM {{ source('raw', 'phone_orders') }}
+UNION
+SELECT *
+FROM {{ source('raw', 'web_orders') }}
+```
+
+After being compiled, the SQL code will look like this:
+```sql
+SELECT *
+FROM raw.phone_orders
+UNION
+SELECT *
+FROM raw.web_orders
+```
+
+### Testing sources
+dbt allows us to define tests for sources to ensure data quality and integrity. Source tests are defined in the same YAML file where the sources are defined.
+
+Example of defining tests for a source in a YAML file:
+```yaml
+version: 2
+
+sources:
+    - name: raw
+      tables: 
+        - name: phone_orders
+          tests:
+            - not_null:
+                column_name: order_id
+            - unique:
+                column_name: order_id
+        - name: web_orders
+          tests:
+            - not_null:
+                column_name: order_id
+            - unique:
+                column_name: order_id
+```
+## dbt seeds
+
+These are CSV files that can be loaded into the data warehouse as tables. They are useful for small, static datasets that are needed for analysis or reference.
+
+They are not meant to contain raw data or data exported from another process.
+
+Why do we need to use seeds?
+- CSV files are relatively easy to create and maintain.
+- They can be edited manually if needed, copied, etc.
+- They are easy to use, whether in development, testing, or production environments.
+- Finally, they are text, which makes them easy to version control.
+
+To define a seed in dbt;
+1. Add the CSV file to the `seeds` subdirectory within the dbt project directory. 
+2. Ensure the header is the first row of the CSV file, as it will be used to define the column names in the resulting table.
+3. Once ready, use the command `dbt seed` to load the CSV file into the data warehouse as a table.
+4. Run the `dbt seed` to complete the process.
+
+Further configuration can be added such as which schema and database to use, options, datatypes to assign the columns, etc. This is done in the `dbt_project.yml` file.
+
+### Defining datatypes for seeds
+To define datatypes for seed columns, we can specify the datatypes in the `dbt_project.yml` file under the `seeds` section. If not specified, dbt will infer the datatypes based on the data in the CSV file.
+
+```yaml
+version: 2
+
+seeds:
+  - name: zipcodes
+    config:
+      column_types:
+        zipcode: varchar(10)
+        city: varchar(50)
+        state: varchar(2)
+        population: integer
+``` 
+
+### Tests in seeds
+Tests can be defined for seed tables in the same way as for models and sources. The tests are defined in the `model_properties.yml` file or a separate YAML file in the models directory.
+
+```yaml
+version: 2
+
+seeds:
+  - name: zipcodes
+    config:
+      column_types:
+        zipcode: varchar(10)
+    columns:
+      - name: zipcode
+        tests:
+          - unique
+          - not_null
+```
+### Accessing seeds
+To access a seed table in a dbt model, we use the `ref()` function within the SQL code of the model. The `ref()` function takes one argument: the name of the seed table.
+
+```sql
+SELECT *
+FROM {{ ref('zipcodes') }}
+```
+
+## Snapshots 
+Slowly changing dimensions (SCD), mostly type 2, are used to manage and track changes to data over time. They are particularly useful for historical analysis and auditing purposes.
+
+Snapshots in dbt allow us to capture the state of a table at a specific point in time and store it as a separate table in the data warehouse. This enables us to track changes to the data over time and analyze historical trends.
+
+dbt tracks changes using snapshots, by adding extra columns to the output; `dbt_valid_from` and `dbt_valid_to` to indicate the time range during which a particular record was valid. Additionally, a `dbt_is_current` column is added to indicate whether a record is the most recent version.
+
+To implement a snapshot in dbt:
+1. Create a `snapshots` directory within the dbt project directory if it doesn't already exist.
+2. Create a new SQL file in the `snapshots` directory to define the snapshot.
+3. Use the `snapshot` block to define the snapshot, specifying the source table, unique key, and any additional columns to track.
+4. Run the `dbt snapshot` command to create the snapshot table in the data warehouse.
+
+Example of defining a snapshot in dbt:
+```sql
+{% snapshot customer_snapshot %}
+
+    {{
+        config(
+            target_schema='snapshots',
+            unique_key='customer_id',
+            strategy='timestamp',
+            updated_at='last_updated'
+        )
+    }}
+
+    SELECT
+        customer_id,
+        first_name,
+        last_name,
+        email,
+        last_updated
+    FROM {{ source('raw', 'customers') }}
+
+{% endsnapshot %}
+```
+
+## Automation with dbt build
+
+`sources` and `seeds` feed initial data to dbt. `models` handle the transformation of data (usually from `sources` and `seeds`) for downstream consumption. We can then use `tests` to validate the data in `models`, `sources`, and `seeds`. `snapshots` are used to track changes in data over time.
+
+Now, `dbt build` is a command that combines several dbt commands into a single command to streamline the workflow in a production environment. It combines various tasks, such as `dbt run`, `dbt test`, `dbt seed`, and `dbt snapshot`, into a single command.
+
+Note: `dbt build` does not perform `dbt docs` operations.
+
+`dbt build` is used because it simplifies the workflow by reducing the number of commands that need to be run manually. It ensures that all necessary steps are executed in the correct order, reducing the risk of errors or omissions.
+
+It may not be needed for the testing and development phase, but it is very useful in production environments where consistency and reliability are crucial.
+
+`dbt build` options include:
+- `dbt build --select <object>`: To build specific objects (models, tests, seeds, snapshots) instead of the entire project.
+- `dbt build -d` for debug mode, which provides detailed logging information during the build process.
+- `dbt build --exclude <object>`: To exclude specific objects from the build process.
