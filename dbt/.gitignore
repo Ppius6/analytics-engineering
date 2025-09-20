@@ -11,6 +11,7 @@ logs/
 
 # Virtual environments
 dbt-venv/
+dbt-env/
 venv/
 env/
 .venv/
