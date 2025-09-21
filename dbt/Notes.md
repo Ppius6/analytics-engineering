@@ -186,6 +186,85 @@ SELECT
 FROM {{ source('my_source', 'source_table') }}
 ```
 
+### Jinja Types
+Jinja `statements` are enclosed in `{% %}`. 
+
+```
+{% set order_statuses = ['Shipped', 'Complete', 'Processing'] %}
+```
+Jinja `expressions` are enclosed in `{{ }}`.
+
+```
+SELECT * FROM {{ ref('stg_orders') }}
+```
+
+Jinja `comments` are enclosed in `{# #}`.
+
+```
+{# This is a comment #}
+```
+
+### Jinja Statements
+Jinja statements can take the forms of `set`, `loop`, conditional logic, macros, etc.
+
+A `set` jinja statement is used to assign a value to a variable.
+
+```sql
+{% set country = 'USA' %}
+
+SELECT * FROM {{ ref('stg_orders') }}
+WHERE country = '{{ country }}'
+```
+
+Remember, Jinja statements are enclosed in `{% %}`. An example when looping through items:
+
+Template:
+```
+{% for ... %} ... {% endfor %}
+```
+
+Example:
+```
+{% for order_status in order_statuses %}
+    SUM(
+        CASE WHEN status = '{{ order_status }}' 
+          THEN order_id
+        END
+    )
+{% endfor %}
+```
+
+When using SQL:
+```sql
+{% set order_statuses = ['Shipped', 'Complete', 'Processing'] %}
+
+SELECT
+    user_id,
+    -- Jinja loop
+    {% for order_status in order_statuses %}
+        SUM(
+            CASE WHEN status = '{{ order_status }}' THEN 1 ELSE 0 END) 
+            -- Parametrized column name
+            AS num_orders_{{ order_status }}
+    {% endfor %}
+FROM {{ ref('stg_orders') }}
+GROUP BY 1
+```
+
+### Jinja Macros
+
+Macros are reusable SQL snippets that can be defined once and used multiple times throughout a dbt project. They are defined in `.sql` files within the `macros` directory of a dbt project.
+
+They are helpful in combining multiple SQL functions into one. For example, `ROUND()`, and `COALESCE()` are often used together for data cleaning. The `COALESCE()` function is used to handle null values by replacing NULL values with the first non-null value.
+
+A macro always starts with `macro` and ends with `endmacro`.
+
+```sql
+{% macro clean_number(column_name) %}
+    ROUND(COALESCE({{ column_name }}, 0), 2)
+{% endmacro %}
+```
+
 ## Hierarchical models
 - A hierarchy represents the dependencies between models in a dbt project; the relationship between source and transformed data.
 - Models can depend on other models, creating a directed acyclic graph (DAG) of transformations.
@@ -472,3 +551,4 @@ It may not be needed for the testing and development phase, but it is very usefu
 - `dbt build --select <object>`: To build specific objects (models, tests, seeds, snapshots) instead of the entire project.
 - `dbt build -d` for debug mode, which provides detailed logging information during the build process.
 - `dbt build --exclude <object>`: To exclude specific objects from the build process.
+
