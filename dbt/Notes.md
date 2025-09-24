@@ -552,3 +552,22 @@ It may not be needed for the testing and development phase, but it is very usefu
 - `dbt build -d` for debug mode, which provides detailed logging information during the build process.
 - `dbt build --exclude <object>`: To exclude specific objects from the build process.
 
+## Building a dbt project pipeline
+1. Initialize a new dbt project using `dbt init <project_name>`.
+2. Configure the `profiles.yml` file with the connection details for the data warehouse.
+3. Define data sources in the `sources` section of a YAML file within the `models` directory.
+4. Create seed files in the `seeds` directory and configure them in the `dbt_project.yml` file.
+5. Develop models in the `models` directory using SQL and Jinja templating.
+6. Define tests for models, sources, and seeds in a YAML file within the `models` directory.
+7. Create snapshots in the `snapshots` directory to track changes in data over time.
+8. Use `dbt build` to automate the entire workflow, ensuring that all steps are executed in the correct order.
+9. Schedule and automate dbt runs using tools like Airflow or dbt Cloud for regular data updates and maintenance.
+10. Monitor the dbt runs and review logs for any errors or issues that may arise during the process.
+11. Generate and serve documentation using `dbt docs generate` and `dbt docs serve` to provide insights into the data models and their relationships.
+12. Continuously update and maintain the dbt project as data requirements evolve, ensuring that models, tests, and documentation remain accurate and up-to-date.
+
+## Additional Resources
+- [dbt Learn](https://learn.getdbt.com/)
+- [dbt Slack Community](https://www.getdbt.com/community/join-the-community/)
+- [dbt YouTube Channel](https://www.youtube.com/c/dbtlabs)
+- [dbt Blog](https://blog.getdbt.com/)
