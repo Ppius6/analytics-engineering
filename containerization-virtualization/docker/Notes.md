@@ -1,3 +1,5 @@
+# Docker
+
 ## The Docker CLI
 
 On the command line, we can send instructions to the Docker daemon using the Docker CLI (Command Line Interface). The CLI is a command-line tool that allows users to interact with Docker and manage containers, images, networks, and volumes.
@@ -75,7 +77,7 @@ FROM my-custom-data-pipeline
 
 ```
 FROM postgres:15.0
-FROM ubutnu:22.04
+FROM ubuntu:22.04
 FROM hello-world:latest
 FROM my-custom-data-pipeline:v1
 ```
@@ -102,3 +104,175 @@ We can also add a version tag to the image name using a colon (`:`) followed by 
 docker build -t <image_name>:<version> .
 docker build --tag <image_name>:<version> .
 ```
+
+Next, we customize the image using the RUN instruction. The RUN instruction allows us to execute commands inside the image during the build process. This is useful for installing dependencies, configuring settings, and setting up the environment.
+
+```
+FROM ubuntu
+RUN apt-get update
+RUN apt-get install -y python3
+```
+
+`apt-get update` is a package manager than allows us to install all kinds of software on Ubuntu. The `-y` flag is used to automatically answer "yes" to any prompts that may arise during the installation process.
+
+## Managing files in Docker images
+
+The `COPY` instruction is used to copy files from the host machine to the Docker image. This is useful for adding application code, configuration files, and other resources to the image.
+
+```
+FROM ubuntu
+COPY <src-path-on-host> <dest-path-in-image>
+```
+If the destination path does not exist, the original filename is used. Similarly, not specifying a filename in the src path will copy all the file contents.
+
+```
+COPY /projects/pipeline_v3/pipeline.py /app/
+```
+
+``` 
+COPY <src-folder> <dest-folder>
+```
+
+Instead of copying files from a local directory, files are often downloaded in the image build:
+
+```
+-- Download the file
+RUN curl <file-url> -o <dest-path-in-image>
+
+-- Unzip the file
+RUN unzip <dest-folder>/<filename>.zip
+
+-- Remove the zip file
+RUN rm <dest-folder>/<filename>.zip
+```
+
+Each download instructions adds to the total size of the image. To reduce the image size, we can chain multiple commands together using `&&`:
+
+```
+RUN curl <file-url> -o <dest-path-in-image> && \
+    unzip <dest-folder>/<filename>.zip && \
+    rm <dest-folder>/<filename>.zip
+```
+
+## Start command
+The `CMD` instruction is used to specify the command that will be executed when a container is started from the image. This is useful for setting the default behavior of the container.
+
+```
+FROM ubuntu
+CMD ["echo", "Hello, World!"]
+CMD python 3 my_script.py
+```
+
+We can override the default start command when running the container using the `docker run` command:
+
+```
+docker run <image_name> <new_command>
+docker run my-app python my_script.py
+```
+
+## Docker caching
+When building a Docker image, Docker uses a caching mechanism to speed up the build process. Each instruction in the Dockerfile creates a new layer in the image, and Docker caches these layers to avoid rebuilding them if they have not changed.
+
+For example, if we have a Dockerfile with the following instructions:
+
+```
+FROM ubuntu
+RUN apt-get update
+RUN apt-get install -y python3
+COPY . /app
+```
+
+When we build the image for the first time, Docker will execute each instruction and create a new layer for each one. If we make a change to the `COPY` instruction and rebuild the image, Docker will only re-execute the `COPY` instruction and create a new layer for it. The previous layers will be cached and reused, which speeds up the build process.
+
+However, if we make a change to the `RUN` instruction that installs Python, Docker will re-execute that instruction and create a new layer for it. The previous layers will still be cached and reused, but the layer for the `RUN` instruction will be rebuilt.
+
+To force Docker to ignore the cache and rebuild all layers, we can use the `--no-cache` option when building the image:
+
+```
+docker build --no-cache -t <image_name> .
+```
+
+This will ensure that all instructions in the Dockerfile are executed and all layers are rebuilt, regardless of whether they have changed or not.
+
+## Changing the user and working directory
+
+By default, Docker containers run as the root user. However, for security reasons, it is often recommended to run containers as a non-root user. We can change the user that the container runs as using the `USER` instruction in the Dockerfile.
+
+```
+FROM ubuntu
+USER repl
+RUN apt-get update
+RUN apt-get install -y python3
+```
+In this example, the container will run as the `repl` user instead of the root user. We can also create a new user using the `RUN` instruction before changing the user.
+
+```
+FROM ubuntu
+RUN useradd -ms /bin/bash newuser
+USER newuser
+RUN apt-get update
+RUN apt-get install -y python3
+```
+
+We can also change the working directory of the container using the `WORKDIR` instruction. This sets the default directory for any subsequent instructions in the Dockerfile.
+
+```
+FROM ubuntu
+WORKDIR /app
+COPY . /app
+RUN apt-get update
+RUN apt-get install -y python3
+CMD ["python3", "my_script.py"]
+```
+
+In this example, the working directory is set to `/app`, and any subsequent instructions will be executed in that directory. This is useful for organizing files and ensuring that the container runs in the correct context.
+
+## Variables in Dockerfiles
+
+Using variables in Dockerfiles can help make them more flexible and easier to maintain. We can define variables using the `ARG` instruction, which allows us to pass values to the Dockerfile at build time.
+
+```
+ARG <variable_name>=<default_value>
+```
+
+For example, ARG path=/home/repl
+
+To use in the Dockerfile, we can reference the variable using the `$` symbol:
+
+```
+FROM ubuntu
+ARG path=/home/repl
+WORKDIR $path/app
+COPY . $path/app
+RUN apt-get update
+RUN apt-get install -y python3
+CMD ["python3", "my_script.py"]
+```
+
+We can also use the `ENV` instruction to set environment variables that will be available to the container at runtime.
+
+```
+ENV <variable_name>=<value>
+```
+For example, ENV PORT=8080
+
+We can reference the environment variable in the Dockerfile using the `$` symbol:
+
+```
+FROM ubuntu
+ENV PORT=8080
+EXPOSE $PORT
+CMD ["python3", "my_script.py"]
+```
+
+In this example, the `PORT` environment variable is set to `8080`, and the `EXPOSE` instruction uses the variable to specify the port that the container will listen on.
+
+When building the Docker image, we can override the default value of an `ARG` variable using the `--build-arg` option:
+
+```
+docker build --build-arg <variable_name>=<value> -t <image_name> .
+```
+
+## Creating Secure Docker Images
+
+ 
