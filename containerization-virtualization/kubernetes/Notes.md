@@ -176,3 +176,36 @@ The commands for storage include:
 - `kubectl get sc`: Lists all Storage Classes in the cluster.
 
 As usual, `kubectl apply -f <manifest.yaml>` is used to create or update Persistent Volumes, Persistent Volume Claims, and Storage Classes.
+
+### Networking, Load Balancing, and Security
+
+Labels and selectors are used to group and select Kubernetes objects. Labels are key-value pairs attached to objects, while selectors are used to filter objects based on their labels.
+
+Services, which can be created using Manifests, are used to expose Pods to the network. They provide a stable endpoint for accessing a set of Pods, allowing for load balancing and service discovery.
+
+Load balancing is a feature of Services that distributes incoming traffic across multiple Pods. This ensures that no single Pod is overwhelmed with requests, improving the availability and reliability of the application. They can be declared in the `spec` section of a Service manifest.
+
+Load balancers are pre-configured to work with cloud providers, such as AWS or GCP, and can be created using the `type: LoadBalancer` field in the Service manifest. This allows Kubernetes to automatically provision a cloud load balancer that routes traffic to the Pods.
+
+Ingress allows us to route HTTP and HTTPS traffic to Services which is done by rules that define which service is used by which requests. For example, the ingress rules route requests for endpoint /for_service1 to K8s Service1 and requests for endpoint /for_service2 to K8s Service2.
+
+Security in Kubernetes is managed through Role-Based Access Control (RBAC), which allows administrators to define roles and permissions for users and service accounts. This ensures that only authorized users can access and modify Kubernetes resources.
+
+
+### Data Pipelines in Kubernetes
+
+Data pipelines are a set of processes to move data from a source to a destination, transform data from one form into another, and analyze the data to get insights from it. 
+
+In most cases, the data pipelines consists of three major steps: extract, transform, and load (ETL). Similarly, ELT (extract, load, transform) is a variation that is often used in modern data architectures, where data is loaded into a staging area before being transformed.
+
+In Kubernetes, the extract, transform, and load steps can be deployed using Deployments or StatefulSets, and the data that gets extracted and transformed can be stored using Persistent Volumes. Further, if we use scalable solutions for all these steps, we can use K8s to scale our deployments and storage when needed. 
+
+For extracting data, we can use tools like Apache Kafka, Apache Nifi with Kafka Connect. For transforming data, we can use tools like Apache Spark, Apache Kafka, Apache Flink, PostgreSQL, and for loading data, we can use tools like Apache Spark, Apache Kafka with KSQL, PostgreSQL, and for storage on top of PVs, we can use Minio or block storage like Ceph.
+
+### MLOps in Kubernetes
+
+MLOps is a set of practices that combines machine learning (ML) and operations (Ops) to automate the deployment, monitoring, and management of ML models in production. It is a collection of best-practice workflows with a strong focus on continous development and constant improvement of ML models.
+
+The isolated experimental systems that we need for development and testing can easily be realized by Pods and K8s Storage. We can monitor our productive ML models easily by following the lifecycle of our Pods, together with the images we have deployed. It is also possible to work synchronously as a team, on model accuracy, as this is enabled from the very beginning by the architecture of Kubernetes Several frameworks exist for MLOps on Kubernetes, such as Kubeflow, MLflow, and TensorFlow Extended (TFX).
+
+Kubeflow is an open-source platform that provides a set of tools for building, deploying, and managing ML workflows on Kubernetes. It includes components for data preprocessing, model training, hyperparameter tuning, and model deployment. It covers the entire ML lifecycle, from data preparation to model deployment and monitoring. Python can be used for scripting and automating tasks within Kubeflow.
