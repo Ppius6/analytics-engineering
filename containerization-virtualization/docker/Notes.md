@@ -273,6 +273,443 @@ When building the Docker image, we can override the default value of an `ARG` va
 docker build --build-arg <variable_name>=<value> -t <image_name> .
 ```
 
-## Creating Secure Docker Images
+## Temporary Containers
 
+Temporary containers are often used for tasks such as testing, debugging, or running one-off commands without the need to create a persistent container. These containers are created, run, and then removed automatically after their execution.
+
+To create a temporary container, we can use the `docker run` command with the `--rm` option. This option ensures that the container is removed automatically after it stops running.
+
+```
+docker run --rm <image_name> <command>
+```
+For example, if we want to run a temporary container from the `ubuntu` image and execute the `echo` command, we can use the following command:
+
+```
+docker run --rm ubuntu echo "Hello, World!"
+```
+This command will create a temporary container from the `ubuntu` image, execute the `echo "Hello, World!"` command, and then remove the container once the command has completed.
  
+## Mounting the host filesystem
+
+Each container has its own filesystem, which is based on the image it was created from. Changes can be made to the filesystem but are tied to that instance only. If we restart the container, the changes will stay, but only for that specific instance and would not apply to other instances of the same container image.
+
+Rather than modifying the contents of our running containers or always creating new Docker images, we can attach files or directories from the host system to the container. This would allow for the persistence of data, whether log files, database files, or configuration files, without the need to maintain the container image itself.
+
+We can use Docker to upgrade the container to a newer version but safely keep all of our data separate, a technique known as `bind-mount`. It can be read-only, where the container can only read the files but not change them. 
+
+To mount a file or directory from the host system into a container, we can use the `-v` or `--mount` option with the `docker run` command. The syntax for mounting a volume is as follows:
+
+```
+docker run -v <source>:<destination> <image_name>
+```
+
+Example:
+```
+docker run -v ~/html:/var/www/html my-web-server
+```
+
+In this example, the `~/html` directory on the host system is mounted to the `/var/www/html` directory inside the container. Any changes made to files in the `~/html` directory on the host will be reflected in the `/var/www/html` directory inside the container, and vice versa.
+
+## Persistent volumes
+
+Volumes are an option to store data in Docker, unrelated to the container image or host filesystem. They are managed from the command line, or API, can share with multiple containers.
+
+They are higher performance than using bind-mounts and do exist until removed, even if no containers are using them.
+
+To create a volume, we can use the `docker volume create` command:
+
+```
+docker volume create <volume_name>
+```
+
+To list all volumes, we can use the `docker volume ls` command:
+
+```
+docker volume ls or docker volume list
+```
+
+To inspect a volume, we can use the `docker volume inspect` command:
+
+```
+docker volume inspect <volume_name>
+```
+
+To remove a volume, we can use the `docker volume rm` command:
+
+```
+docker volume rm <volume_name>
+```
+
+To use a volume in a container, we can use the `-v` or `--mount` option with the `docker run` command. The syntax for mounting a volume is as follows:
+
+```
+docker run -v <volume_name>:<destination> <image_name>
+```
+
+For example, if we have a volume named `my-data` and we want to mount it to the `/data` directory inside a container, we can use the following command:
+
+```
+docker run -v my-data:/data my-app
+```
+
+For the volume drivers, they include the local filesystem, NFS, SMB, or CIFS. The default driver is `local`, which stores the volume data on the host filesystem.
+
+To specify a different volume driver, we can use the `--driver` option when creating the volume:
+
+```
+docker volume create --driver <driver_name> <volume_name>
+```
+
+For example, to create a volume using the NFS driver, we can use the following command:
+
+```
+docker volume create --driver nfs my-nfs-volume
+```
+
+## Networking in Docker
+
+Docker provides a built-in networking system that allows containers to communicate with each other and with the host system. By default, Docker creates a bridge network called `bridge`, which allows containers to communicate with each other on the same host.
+
+A host is a general term for a computer or server that runs Docker and hosts containers. Each host has its own IP address and can run multiple containers.
+
+A network is a group of hosts that are connected together and can communicate with each other. In Docker, networks are used to connect containers to each other and to the host system.
+
+An interface is a connection from a host to a network such as Ethernet or Wi-Fi. An interface can be virtual, meaning it is entirely in software, or physical, meaning it is a hardware device.
+
+A LAN is a local area network, which is a network that connects devices within a limited geographic area, such as a home or office.
+
+A VLAN is a virtual or software-defined LAN that allows multiple virtual networks to be created on a single physical network.
+
+An Internet Protocol is a method to connect between networks using IP addresses. IPv4 is the most commonly used version of IP, but IPv6 is becoming more widely adopted.
+
+TCP is the Transmission Control Protocol, which is a protocol used for reliable communication between devices on a network. UDP is the User Datagram Protocol, which is a protocol used for faster, but less reliable communication between devices on a network.
+
+Both TCP and UDP require a port value, a method to address different services on a given host via TCP or UDP. The port is a value between 0 and 65535, with ports below 1024 being reserved for well-known services. Values above 1024 are usually referred to as ephemeral ports.
+
+HTTP is an application protocol defaulting to TCP port 80 for web communication. The secure version, HTTPS, defaults to TCP port 443. SMTP is an email transfer protocol that defaults to TCP port 25. SNMP is a network management protocol that uses UDP port 161. 
+
+Docker has extensive networking capabilities that allow users to create custom networks, connect containers to multiple networks, and configure network settings such as IP addresses and DNS servers.
+
+Containers can have their own IP addresses. These can be seen using the command `ifconfig` or `ip addr show <interface>` to view the interfaces and IPs assigned. The `ping -c <x> <host>` can be used to verify connectivity. The `-c` flag requires a count for the number of pings, and the host you wish to connect to, such as an IP address or a hostname.
+
+Port mapping is a technique used to expose a container's internal ports to the host system. This allows services running inside the container to be accessed from outside the container.
+
+To map a container's port to a host port, we can use the `-p` or `--publish` option with the `docker run` command. The syntax for port mapping is as follows:
+
+```
+docker run -p <host_port>:<container_port> <image_name>
+```
+
+For example, if we have a container running a web server on port 80 and we want to map it to port 8080 on the host system, we can use the following command:
+
+```
+docker run -p 8080:80 my-web-server
+```
+This command will map port 80 inside the container to port 8080 on the host system. We can then access the web server by navigating to `http://localhost:8080` in a web browser.
+
+Exposing a port is a way to indicate that a container will listen on a specific port at runtime. This is done using the `EXPOSE` instruction in the Dockerfile.
+
+```
+EXPOSE <port_number>
+```
+
+```
+FROM python:3.9
+ENTRYPOINT ["python", "-mhttp.server"]
+# Let the Docker engine know
+# port 8000 should be available
+EXPOSE 8000
+```
+
+To make a port reachable from outside the container, we must use port mapping when running the container using the `-p` or `--publish` option with the `docker run` command.
+
+```
+docker run -P <image_name>
+```
+
+To find the exposed ports, we can use the `docker inspect` command:
+
+```
+docker inspect <container_id or container_name>
+```
+
+Docker has extensive networking capabilities that allow users to create custom networks, connect containers to multiple networks, and configure network settings such as IP addresses and DNS servers.
+
+It supports different networking types using drivers, including:
+- Bridge: The default network type that allows containers on the same host to communicate with each other
+- Host: A network type that allows containers to share the host's network stack
+- none: A network type that disables all networking for the container
+
+and many others, including overlay networks for multi-host communication.
+
+`docker network ls` or `docker network list`: This command lists all available Docker networks on the local machine, along with their names, IDs, drivers, and scopes.
+`docker network inspect <network_name or network_id>`: This command retrieves detailed information about a specified Docker network, including its configuration, connected containers, and IP address range.
+`docker network create <network_name>`: This command creates a new Docker network with the specified name, using the default bridge driver.
+`docker network create --driver <driver_name> <network_name>`: This command creates a new Docker network with the specified name and driver. For example, `docker network create --
+driver overlay my-overlay-network` creates a new overlay network named "my-overlay-network".
+`docker network rm <network_name or network_id>`: This command removes a specified Docker network from the local machine. Note that a network can only be removed if no containers are connected to it.
+`docker network connect <network_name> <container_id or container_name>`: This command connects a specified container to a specified Docker network, allowing the container to communicate with other containers on the same network.
+
+### jq command-line JSON processor
+The `jq` command-line tool is a lightweight and flexible JSON processor that allows users to parse, filter, and manipulate JSON data from the command line. It is particularly useful for working with Docker, as many Docker commands return JSON output.
+
+Some common `jq` commands include:
+- `jq '.'`: This command pretty-prints JSON data, making it easier to read and understand.
+- `jq '.[]'`: This command iterates over an array of JSON objects, returning each object on a new line.
+- `jq '.[0]'`: This command retrieves the first object in an array of JSON objects.
+- `jq '.key'`: This command retrieves the value of a specified key in a JSON object.
+- `jq '.[].key'`: This command retrieves the value of a specified key from each object in an array of JSON objects.
+- `jq 'select(.key == "value")'`: This command filters an array of JSON objects, returning only those objects where the specified key matches the specified value.
+- `jq '.[].key | length'`: This command retrieves the length of the value of a specified key from each object in an array of JSON objects.
+- `jq '.[].key |= "new_value"'`: This command updates the value of a specified key in each object in an array of JSON objects to a new value.
+- `jq '.[].key += 1'`: This command increments the value of a specified key in each object in an array of JSON objects by 1.
+- `jq '.[].key -= 1'`: This command decrements the value of a specified key in each object in an array of JSON objects by 1.
+- `jq '.[].key *= 2'`: This command multiplies the value of a specified key in each object in an array of JSON objects by 2.
+- `jq '.[].key /= 2'`: This command divides the value of a specified key in each object in an array of JSON objects by 2.
+- `jq '.[].key // "default_value"'`: This command retrieves the value of a specified key from each object in an array of JSON objects, returning a default value if the key does not exist.
+- `jq '.[].key | tostring'`: This command converts the value of a specified key from each object in an array of JSON objects to a string.
+- `jq '.[].key | tonumber'`: This command converts the value of a specified key from each object in an array of JSON objects to a number.
+- `jq '.[].key | @csv'`: This command converts the value of a specified key from each object in an array of JSON objects to a CSV format.
+
+and more.
+
+To find an image with the most layers, we can use the following command:
+
+```
+docker image inspect <image_name> | jq '.[0].RootFS.Layers | length'
+```
+
+### Multi-stage builds
+Multi-stage builds are a feature of Docker that allows users to create multiple stages in a single Dockerfile. Each stage can use a different base image and can include different instructions for building the image. This is useful for creating smaller, more efficient images by separating the build process into multiple stages.
+
+```
+# Stage 1: Build the application
+FROM golang:1.16 AS builder
+WORKDIR /app
+COPY . .
+RUN go build -o myapp
+# Stage 2: Create the final image
+FROM alpine:latest
+WORKDIR /app
+COPY --from=builder /app/myapp .
+CMD ["./myapp"]
+```
+
+In this example, the first stage uses the `golang:1.16` base image to build a Go application. The second stage uses the `alpine:latest` base image to create a smaller final image that only includes the built application. The `COPY --from=builder` instruction is used to copy the built application from the first stage to the second stage.
+
+To check the size of the final image, we can use the `docker images` command:
+
+```
+docker images <image_name>
+```
+
+### Multi-platform builds
+
+Multi-platform builds are a feature of Docker that allows users to create images that can run on multiple architectures, such as x86_64 and ARM. This is useful for creating images that can run on different types of devices, such as servers, desktops, and mobile devices.
+
+To create a multi-platform build, we can use the `docker buildx` command, which is an extension of the `docker build` command that supports building images for multiple platforms.
+
+First, we need to create a new builder instance using the following command:
+
+```
+docker buildx create --name mybuilder --use
+```
+This command creates a new builder instance named `mybuilder` and sets it as the default builder.
+
+Next, we can use the `docker buildx build` command to create a multi-platform build. The syntax for the command is as follows:
+
+```
+docker buildx build --platform <platforms> -t <image_name> .
+```
+
+For example, to create a multi-platform build for the `linux/amd64` and `linux/arm64` architectures, we can use the following command:
+
+```
+docker buildx build --platform linux/amd64,linux/arm64 . -t my-multi-platform-image
+```
+This command will create a multi-platform build for the specified architectures and tag the image with the name `my-multi-platform-image`.
+
+A multi-platform example Dockerfile:
+
+```
+# Initial stage, using local platform
+FROM --platform=$BUILDPLATFORM golang:1.16 AS builder
+# Copy source into place
+WORKDIR /src
+COPY . .
+# Pull the environment variables from the host
+ARG TARGETOS TARGETARCH
+# Build for the target platform
+RUN env GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /out/myapp .
+# Final stage, using target platform
+FROM alpine
+COPY --from=builder /out/myapp /myapp
+```
+
+## Docker Compose
+
+Docker Compose is a tool that allows users to define and manage multi-container Docker applications. It uses a YAML file to define the services, networks, and volumes that make up the application.
+
+A simple example of a `docker-compose.yml` file:
+
+```yaml
+services:
+  # Define the container(s), by name
+  webapp:
+    # The image to use for the container
+    image: "webapp"
+    # Map port 80 in the container to port 8080 on the host
+    ports:
+      - "8080:80"
+  # Defining any other containers
+  redis:
+    image: "redis:alpine"
+```
+
+To start the application, we can use the `docker-compose up` command:
+
+```
+docker compose up or docker-compose up
+```
+
+`docker compose up -d or docker-compose up -d`: This command starts the application in detached mode, allowing it to run in the background.
+
+`docker compose down or docker-compose down`: This command stops and removes the application, including all containers, networks, and volumes defined in the `docker-compose.yml` file.
+
+`docker compose ps or docker-compose ps`: This command lists all running containers in the application, along with their names, statuses, and ports.
+
+`docker compose ls or docker-compose ls`: This command lists all available Docker Compose applications on the local machine, along with their names, statuses, and number of containers.
+
+`docker compose -f <file> up or docker-compose -f <file> up`: This command starts the application using a specified `docker-compose.yml` file, allowing users to define multiple applications with different configurations.
+
+`docker compose -f <file> down or docker-compose -f <file> down`: This command stops and removes the application defined in a specified `docker-compose.yml` file.
+
+`docker compose -f <file> ps or docker-compose -f <file> ps`: This command lists all running containers in the application defined in a specified `docker-compose.yml` file.
+
+### YAML
+YAML (YAML Ain't Markup Language) is a human-readable data serialization format that is often used for configuration files and data exchange between programming languages. It is designed to be easy to read and write, with a simple syntax that uses indentation to indicate structure.
+
+Some common YAML syntax includes:
+- Key-value pairs: YAML uses key-value pairs to represent data. The key is followed by a colon (`:`) and the value is separated by a space. For example, `name: John` represents a key-value pair where the key is `name` and the value is `John`.
+- Lists: YAML uses hyphens (`-`) to represent lists. Each item in the list is preceded by a hyphen and a space. For example:
+
+  ```
+  fruits:
+    - apple
+    - banana
+    - orange
+  ```
+represents a list of fruits with three items: `apple`, `banana`, and `orange`.
+
+- Nested structures: YAML uses indentation to indicate nested structures. Each level of indentation represents a new level of hierarchy. For example:
+
+  ```
+  person:
+    name: John
+    age: 30
+    address:
+      street: 123 Main St
+      city: Anytown
+      state: CA
+  ```
+represents a nested structure where `person` is the top-level key, and `name`, `age`, and `address` are nested keys.
+
+The main sections are `services`, `networks`, and `volumes`. The `services` section defines the containers that make up the application, while the `networks` and `volumes` sections define any custom networks or volumes that are used by the services.
+
+Note that the `networks` and `volumes` sections are optional and can be omitted if not needed. If they are included, they should be defined at the same level as the `services` section.
+
+The `configs` section handles configuration options without custom images. The `secrets` section is used to manage sensitive information, such as passwords or API keys, that should not be stored in the `docker-compose.yml` file.
+
+The services section defines all the containers that make up the application. Each service is defined by a name and a set of options, such as the image to use, the ports to expose, and any environment variables to set.
+
+An example is:
+
+```yaml
+services:
+  # Resource name
+  postgres:
+    # Container name, otherwise random
+    container_name: postgres
+    # The image to use for the container
+    image: postgres:latest
+    # Any port mappings
+    ports:
+     - "5432:5432"
+
+  # Next resource
+   pgadmin:
+    ...
+```
+
+Dependencies between services can be defined using the `depends_on` option. This ensures that a service is started only after its dependencies are started.
+
+For example, we define a postgresql database with no dependencies, then the python application that depends on the database, and finally a web server that depends on the python application:
+
+Other options include `condition` to specify the condition for starting the service, such as `service_healthy` to wait until the service is healthy before starting the dependent service, and `service_started` to wait until the service is started before starting the dependent service.
+
+The `service_completed_successfully` condition ensures that the dependent service is started only if the service it depends on has completed successfully.
+
+```yaml
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydb
+
+  app:
+    image: my-python-app
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    image: nginx
+    depends_on:
+      app:
+        condition: service_started
+```
+
+`docker compose logs` or `docker-compose logs`: This command retrieves the logs for all containers in the application, allowing users to view the output of each container.
+
+`docker compose top` or `docker-compose top`: This command displays the running processes inside each container in the application, allowing users to monitor resource usage and performance.
+
+The above commands help when troubleshooting issues with the application or monitoring its performance.
+
+### Data sharing in compose.yml
+
+Data can be shared between containers in a Docker Compose application using volumes. Volumes are a way to persist data outside of the container's filesystem, allowing data to be shared between multiple containers.
+
+To define a volume in a `docker-compose.yml` file, we can use the `volumes` section. The syntax for defining a volume is as follows:
+
+```yaml
+volumes:
+  <volume_name>:
+    driver: <driver_name>
+    driver_opts:
+      <option_name>: <option_value>
+```
+
+For example, to define a volume named `my-data` using the default `local` driver, we can use the following syntax:
+
+```yaml
+volumes:
+  my-data:
+    driver: local
+```
+
+We can also add a networking section to define custom networks for the application. The syntax for defining a network is as follows:
+
+```yaml
+services:
+  resource:
+    name: resource1
+
+    networks:
+       network_name:
+         aliases:
+           - alias1
+           - alias2
+```
+
