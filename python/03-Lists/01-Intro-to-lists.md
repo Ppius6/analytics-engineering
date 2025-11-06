@@ -66,6 +66,10 @@ print(bicycles)  # Output: ['giant', 'cannondale', 'redline', 'specialized']
 
 ### Adding Elements to a List
 
+You may want to add a new element to a list for many reasons. For example, you might want to make new aliens appear in a game, add new data to a visualization, or add new registered users to a website you have built.
+
+#### Appending Elements to the End of a list
+
 We can add elements to a list. For example, we may want to add a new bicycle to our `bicycles` list. We can use the `append()` method to add an element to the end of the list:
 
 ```python
@@ -83,3 +87,85 @@ countries.append('Uganda')
 countries.append('Zambia')
 countries.append('Rwanda')
 ```
+
+Note that when using `append()`, we usually append an element at the end of the list.
+
+#### Inserting Elements into a List
+
+We can also add a new element at any position in your list by using the `insert()` method. We can do this by specifying the index of the new element and the value of the new item:
+
+```python
+countries = ["Kenya", "Uganda", "Rwanda"]
+countries.insert(0, "Burundi")
+print(countries) # Output: ["Burundi", "Kenya", "Uganda", "Rwanda"]
+```
+
+In the above example, we insert the value "Burundi" at the beginning of the list. The method `insert()` opens a space at position 0 and stores the new value at that location
+
+```python
+# Output: ["Burundi", "Kenya", "Uganda", "Rwanda"]
+```
+
+### Removing Elements from a List
+
+You would want to remove an item or a set of items from a list. For example, when a user decides to cancel their account on a web application you created, you will want to remove that user from the list of active users. You can remove an item according to its position in the list or according to its value.
+
+#### Removing an Item Using the del Statement
+
+If you know the position of the item you want to remove from a list, the `del` statement can come in handy:
+
+```python
+countries = ["Burundi", "Kenya", "Uganda", "Rwanda"]
+del countries[2]
+print(countries) # Output: ["Burundi", "Kenya", "Rwanda"]
+```
+
+#### Removing an Item Using the pop() Method
+
+At times, you may want to use the value of an item after you remove it from a list. 
+
+For example, you might want to get the x and y position of an alien that was just shot down, so you can draw an explosion at that position. In a web application, you might want to remove a user from a list of active members and then add that user to a list of inactive members.
+
+The `pop()` method removes the last item in a list, but it lets you work with that item after removing it. The term `pop` comes from thinking of a list as a stack of items and popping one item off the top of the stack. In this analogy, the top of a stack corresponds to the end of a list.
+
+Let us pop a country from the list of motorcycles
+
+```python
+countries = ["Burundi", "Kenya", "Uganda", "Rwanda"]
+popped_country = countries.pop()
+print(countries) # Output: ['Burundi', 'Kenya', 'Uganda']
+print(popped_country) # Output: ["Rwanda"]
+```
+
+So, how might this `pop()` method be useful? If the countries in the list are stored in chronological order, based on when we added them, or gained independence, we can use the `pop()` method to print a statement to get the result of which country gained independece last:
+
+```python
+countries = ["Burundi", "Kenya", "Uganda", "Rwanda"]
+last_country = countries.pop()
+print(countries) # Output: ['Burundi', 'Kenya', 'Uganda']
+print(last_country) # Output: ["Rwanda"]
+print(f"The last country to gain independence was {last_country.title()}.")
+```
+
+#### Popping Items from Any Position in a List
+
+We can also use `pop()` to remove an item from any position in a list by just including the index of the item we want to remove.
+
+```python
+countries = ["Burundi", "Kenya", "Uganda", "Rwanda"]
+first_country = countries.pop(0)
+print(countries) # Output: ['Kenya', 'Uganda', 'Rwanda']
+print(first_country) # Output: ['Burundi']
+```
+
+#### Removing an Item by Value
+
+We may not know the position of the value we want to remove from a list. In this case, we can use the `remove()` method.
+
+```python
+countries = ["Burundi", "Kenya", "Uganda", "Rwanda"]
+countries.remove('Kenya')
+print(countries) # Output: ['Burundi', 'Uganda', 'Rwanda']
+```
+
+## Organizing a List
