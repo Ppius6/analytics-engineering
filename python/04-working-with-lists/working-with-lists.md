@@ -161,3 +161,168 @@ print(squares)
 # [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
 ```
 
+## Working with Parts of a List
+
+### Slicing a List
+
+To slice a list, you would specify the index of the first and last elements you would want to work with. Same as the `range()` function, the first index is inclusive, while the last index is exclusive.
+
+```python
+players = ['charles', 'martina', 'michael', 'florence', 'eli']
+print(players[0:3])
+# Output:
+# ['charles', 'martina', 'michael']
+```
+
+The example below omits the first index, so Python starts from the beginning of the list:
+
+```python
+players = ['charles', 'martina', 'michael', 'florence', 'eli']
+print(players[:4])
+# Output:
+# ['charles', 'martina', 'michael', 'florence']
+```
+
+You can also omit the last index, and Python will slice the list up to the end:
+
+```python
+players = ['charles', 'martina', 'michael', 'florence', 'eli']
+print(players[2:])
+# Output:
+# ['michael', 'florence', 'eli']
+```
+
+You can use negative indexing to slice a list from the end:
+
+```python
+players = ['charles', 'martina', 'michael', 'florence', 'eli']
+print(players[-3:])
+# Output:
+# ['michael', 'florence', 'eli']
+```
+
+### Looping through a Slice
+
+You can also use a slice in a `for` loop if you want to loop through a subset of the elements in a list. 
+
+Here, we loop through the first three players in the list and print their names as part of a simple roster:
+
+```python
+players = ['charles', 'martina', 'michael', 'florence', 'eli']
+
+print("Here are the first three players on my team:")
+for player in players[:3]:
+    print(player.title())
+# Output:
+# Here are the first three players on my team:
+# Charles
+# Martina
+# Michael
+```
+
+Slices are powerful. For example, you can use slices to process your data in chunks of a specific size, display information in a series of pages with an appropriate amount of information on each page, or get a player's top three scores by sorting the list in decreasing order and taking a slice that includes just the first three scores.
+
+### Copying a List
+
+You may want to start with an existing list and make an entirely new list based on the first one. 
+
+To do this, we make use of `[:]` to create a slice that includes the entire list:
+
+```python
+counties = ['Meru', 'Nairobi', 'Kisumu', 'Mombasa']
+counties_ke = counties[:]
+print("Original list:", counties)
+print("Copied list:", counties_ke)
+# Output:
+# Original list: ['Meru', 'Nairobi', 'Kisumu', 'Mombasa']
+# Copied list: ['Meru', 'Nairobi', 'Kisumu', 'Mombasa']
+```
+
+Now, if we modify the new list, the original list remains unchanged:
+
+```python
+counties = ['Meru', 'Nairobi', 'Kisumu', 'Mombasa']
+counties_ke = counties[:]
+counties_ke.append('Machakos')
+print("Original list:", counties)
+print("Modified copied list:", counties_ke)
+# Output:
+# Original list: ['Meru', 'Nairobi', 'Kisumu', 'Mombasa']
+# Modified copied list: ['Meru', 'Nairobi', 'Kisumu', 'Mombasa', 'Machakos']
+```
+
+Note that if we had assigned `counties_ke = counties` without the slice, both variables would point to the same list in memory. Therefore, changes made to `counties_ke` would also affect `counties`. Using the slice `[:]` creates a new list in memory, allowing us to modify it independently.
+
+## Tuples
+
+Lists work well for storing collections of items that can change throughout the life of a program. However, there are times when you want to create a list of items that cannot be changed. In Python, we call these immutable lists `tuples`.
+
+To define a tuple, you use parentheses `()` instead of square brackets `[]`:
+
+```python
+dimensions = (200, 50)
+print(dimensions[0])
+print(dimensions[1])
+# Output:
+# 200
+# 50
+```
+
+However, when we try to modify an element of a tuple, Python raises a `TypeError`:
+
+```python
+dimensions = (200, 50)
+dimensions[0] = 250
+# Output:
+# TypeError: 'tuple' object does not support item assignment
+```
+
+When looping through a tuple, you can use a `for` loop just like with a list:
+
+```python
+dimensions = (200, 50)
+for dim in dimensions:
+    print(dim)
+# Output:
+# 200
+# 50
+```
+
+Although you cannot modify a tuple directly, you can reassign a variable that holds a tuple to a new tuple:
+
+```python
+dimensions = (200, 50)
+print("Original dimensions:")
+for dim in dimensions:
+    print(dim)
+
+dimensions = (400, 100)
+print("\nModified dimensions:")
+for dim in dimensions:
+    print(dim)
+# Output:
+# Original dimensions:
+# 200
+# 50
+# 
+# Modified dimensions:
+# 400
+# 100
+```
+
+Compared to lists, tuples are simple data structures. They are useful when you want to ensure that the data remains constant throughout the program.
+
+## Styling Python Code
+
+When writing Python code, it is important to follow certain styling conventions to ensure that your code is readable and maintainable. Here are some key points to consider:
+
+1. Use 4 spaces per indentation level. Avoid using tabs, as they can lead to inconsistent indentation across different editors.
+
+2. Most Python programmers recommend that each line should be less than 80 characters. Historically, this limit was set to accommodate older terminals and editors. While modern screens can handle longer lines, keeping lines shorter improves readability. However, PEP 8 recommends that lines should be limited to 79 characters for code and 72 characters for comments and docstrings. However, the guideline is not set in stone, and you may adjust it based on your project's needs.
+
+3. Use blank lines to separate functions and classes, and to separate sections of code within functions. This helps to visually organize your code.
+
+4. When naming variables, functions, and classes, use descriptive names that convey the purpose of the item. Use lowercase letters and underscores for variable and function names (e.g., `my_variable`, `calculate_sum`), and use CamelCase for class names (e.g., `MyClass`, `DataProcessor`).
+
+5. Include comments in your code to explain complex logic or decisions. Use inline comments sparingly and ensure they are clear and concise.
+
