@@ -241,3 +241,107 @@ elif 'canada' in countries:
 elif 'india' in countries:
     print("India is in the list.")
 ```
+
+### Using if Statements with Lists
+
+There are some interesting use cases that emerge when we combine lists and if statements such as checking for special values that need to be treated differently from the other values in a list, efficiently manage changing conditions such as the availability of certain items in a restaurant throughout a shift, and ensuring that user inputs meet certain criteria.
+
+#### Checking for Special Values
+
+Continuing with the pizzeria example, it displays a message whenever a topping is added to a pizza as it is being made. We can use a list of toppings the customer has requested and using a loop to announce each topping as it is added to the pizza:
+
+```python
+requested_toppings = ['mushrooms', 'green peppers', 'extra cheese']
+
+for requested_topping in requested_toppings:
+    print(f"Adding {requested_topping}.")
+
+print("\nFinished making your pizza!")
+
+# Output:
+Adding mushrooms.
+Adding green peppers.
+Adding extra cheese.
+
+Finished making your pizza!
+```
+
+Now, suppose the pizzeria has run out of green peppers. We can use an `if` statement to check for this special case and display a different message:
+
+```python
+requested_toppings = ['mushrooms', 'green peppers', 'extra cheese']
+
+for topping in requested_toppings:
+    if topping == 'green peppers':
+        print("Sorry, we are out of green peppers right now.")
+    else:
+        print(f"Adding {topping}.")
+
+print("\nFinished making your pizza!")
+
+# Output:
+Adding mushrooms.
+Sorry, we are out of green peppers right now.
+Adding extra cheese.
+
+Finished making your pizza!
+```
+
+#### Checking that a List is Not Empty
+
+Here, we create an empty list of requested toppings. When we run the code, nothing happens because the for loop has no items to work with. We can use an `if` statement to check whether the list is empty before starting the for loop:
+
+```python
+requested_toppings = []
+
+if requested_toppings:
+    for topping in requested_toppings:
+        print(f"Adding {topping}.")
+    print("\nFinished making your pizza!")
+else:
+    print("Are you sure you want a plain pizza?")
+# Output:
+Are you sure you want a plain pizza?
+```
+
+In the above example, we start by initiating `if requested_toppings:`. This expression evaluates to `True` if the list contains at least one item; otherwise, it evaluates to `False`. If the list is not empty, we proceed with the for loop to add the requested toppings. If the list is empty, we print a message asking if the customer wants a plain pizza.
+
+#### Using Multiple Lists
+
+A user may request toppings that are not available. We can check whether each requested topping is in the list of available toppings before adding it to the pizza:
+
+```python
+available_toppings = ['mushrooms', 'olives', 'green peppers', 'pepperoni', 'pineapple', 'extra cheese']
+
+requested_toppings = ['mushrooms', 'french fries', 'extra cheese']
+
+for topping in requested_toppings:
+    if topping in available_toppings:
+        print(f"Adding {topping}.")
+    else:
+        print(f"Sorry, we don't have {topping}.")
+
+print("\nFinished making your pizza!")
+
+# Output:
+Adding mushrooms.
+Sorry, we don't have french fries.
+Adding extra cheese.
+
+Finished making your pizza!
+```
+
+First, we define a list of `available_toppings` that the pizzeria has in stock. Then, we create a list of `requested_toppings` that the customer wants on their pizza. As we loop through each topping in the `requested_toppings` list, we use an `if` statement to check if the topping is present in the `available_toppings` list. If it is available, we print a message indicating that the topping is being added. If it is not available, we print a message apologizing for the unavailability of that topping. 
+
+For example, when the customer requests 'french fries', the program checks the `available_toppings` list, finds that 'french fries' is not present, and prints the corresponding apology message.
+
+### Styling if Statements
+
+When writing `if` statements, it's important to follow proper indentation and formatting to ensure that your code is readable and functions correctly. The only recommendation PEP 8 provides for styling conditional tests is to use a single space around comparison operators:
+
+```python
+if age >= 18:
+    print("You are old enough to vote!")
+```
+
+which is better than `if age>=18:`. Beyond that, the formatting of `if` statements is largely a matter of personal or team preference.
