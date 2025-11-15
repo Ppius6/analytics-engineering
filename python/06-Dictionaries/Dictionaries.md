@@ -177,3 +177,173 @@ country = {"name": "Kenya", "population": 53771296}
 capital = country.get("capital", "Capital not found")
 print(capital) # Output: Capital not found
 ```
+
+## Looping Through a Dictionary
+
+A single Python dictionary can contain just a few key-value pairs or millions of pairs. Since the amounts of data can be large, Python lets us loop through the dictionary to access each key-value pair.
+
+### Looping Through All Key-Value Pairs
+
+Let us explore the example of a dictionary designed to store information about a user on a website. The dictionary below would store one person's username, first name, and last name:
+
+```python
+user_0 = {
+    "username": "john_doe",
+    "first_name": "John",
+    "last_name": "Doe"
+}
+```
+
+We can use a `for` loop to iterate through the dictionary and print each key-value pair:
+
+```python
+for key, value in user_0.items():
+    print(f"\nKey: {key}")
+    print(f"Value: {value}")
+```
+This will output:
+
+```
+Key: username
+Value: john_doe
+Key: first_name
+Value: John
+Key: last_name
+Value: Doe
+```
+
+To write a for loop for a dictionary, we create names for the two variables that will hold the key and value in each key-value pair: `for key, value in dictionary.items():` or even `for k, v in dictionary.items():`.
+
+The next part of the loop utilzes the `.items()` method, which returns a sequence of key-value pairs. The for loop then assigns each of these pairs to the two variables we defined earlier, allowing us to access both the key and value in each iteration.
+
+### Looping Through All the Keys in a Dictionary
+
+The `keys()` method is useful when we do not need to work with all the values in a dictionary. For example, we can loop through the keys in the `user_0` dictionary:
+
+```python
+for key in user_0.keys():
+    print(key)
+```
+This will output:
+
+```
+username
+first_name
+last_name
+```
+
+Looping through the keys is actually the default behavior when looping through a dictionary. This code will produce the same result as above:
+
+```python
+for key in user_0:
+    print(key)
+```
+
+In example below, we will print a message to a couple of friends about the languages they speak. We will loop through the keys in the `favorite_languages` dictionary and print a message to each person:
+
+```python
+favorite_languages = {
+    'jen': 'python',
+    'sarah': 'c',
+    'edward': 'ruby',
+    'phil': 'python',
+}
+
+friends = ['phil', 'sarah']
+for name in favorite_languages.keys():
+    print(f"Hi {name.title()}.")
+    if name in friends:
+        language = favorite_languages[name].title() # Accessing the value using the key
+        print(f"\t{name.title()}, I see you love {language}!")
+```
+
+In the above example, we make a list of friends that we want to print a message to. Inside the loop, we print each person's name. Then, we check whether the name we are working with is in the list friends. If it is, we determine the person's favorite language using the name of the dictionary and the current value of name as the key. We then print a special greeting, including a reference to their language of choice. 
+
+We can also use the `keys()` method to check whether a particular person took the poll:
+
+```python
+favorite_languages = {
+    'jen': 'python',
+    'sarah': 'c',
+    'edward': 'ruby',
+    'phil': 'python',
+}
+
+if 'erin' not in favorite_languages.keys():
+    print("Erin, please take our poll!")
+# Output: Erin, please take our poll!
+```
+
+### Looping Through a Dictionary's Keys in a Particular Order
+
+Looping through a dictionary returns the items in the same order they were inserted. We may want to loop through a dictionary in a different order. 
+
+A way to do this is to sort the keys as they are returned in the for loop. We can use the `sorted()` function to get a copy of the keys in order:
+
+```python
+favorite_languages = {
+    'jen': 'python',
+    'sarah': 'c',
+    'edward': 'ruby',
+    'phil': 'python',
+}
+
+for name in sorted(fovorite_languages.keys()):
+    print(f"{name.title()}, thank you for taking the poll.")
+```
+
+The above tells Python to get all the keys in the dictionary and sort them before starting the loop. The output will be:
+
+```
+Edward, thank you for taking the poll.
+Jen, thank you for taking the poll.
+Phil, thank you for taking the poll.
+Sarah, thank you for taking the poll.
+```
+
+### Looping Through All Values in a Dictionary
+
+If we are only interested in the values that a dictionary contains, we can use the `values()` method to return a list of values without their keys. For example, we can loop through all the values in the `favorite_languages` dictionary:
+
+```python
+favorite_languages = {
+    'jen': 'python',
+    'sarah': 'c',
+    'edward': 'ruby',
+    'phil': 'python',
+}
+
+for language in favorite_languages.values():
+    print(language.title())
+
+# Output:
+Python
+C
+Ruby
+Python
+```
+
+The for statement here pulls each value from the dictionary and assigns it to the variable `language`, which we then print.
+
+However, it pulls all the values from the dictionary without checking for repeats. If we want to see each language chosen only once, we can use a `set`, which is an unordered collection of unique elements:
+
+```python
+favorite_languages = {
+    'jen': 'python',
+    'sarah': 'c',
+    'edward': 'ruby',
+    'phil': 'python',
+}
+
+for language in set(favorite_languages.values()):
+    print(language.title())
+
+# Output:
+Python
+C
+Ruby
+```
+
+Here, the `set()` function takes the list of values returned by the `values()` method and removes any duplicates, so each language is printed only once.
+
+## Nesting 
