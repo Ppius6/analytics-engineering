@@ -347,3 +347,185 @@ Ruby
 Here, the `set()` function takes the list of values returned by the `values()` method and removes any duplicates, so each language is printed only once.
 
 ## Nesting 
+
+We may want to store multiple dictionaries in a list, or a list of items as a value in a dictionary. This is called `nesting` which allows us to nest dictionaries inside a list, a list of items inside a dictionary, or even a dictionary inside another dictionary.
+
+### A List of Dictionaries
+
+Sometimes we may want to store a collection of similar objects. For example, we can store multiple items, each representing a country, in a list:
+
+```python
+country_1 = {"name": "Kenya", "population": 53771296, "capital": "Nairobi"}
+country_2 = {"name": "Uganda", "population": 45741000, "capital": "Kampala"}
+country_3 = {"name": "Tanzania", "population": 59734218, "capital": "Dodoma"}
+countries = [country_1, country_2, country_3]
+for country in countries:
+    print(country)
+```
+
+This will output:
+
+```
+{'name': 'Kenya', 'population': 53771296, 'capital': 'Nairobi'}
+{'name': 'Uganda', 'population': 45741000, 'capital': 'Kampala'}
+{'name': 'Tanzania', 'population': 59734218, 'capital': 'Dodoma'}
+```
+
+We can create a list of aliens with a code that automatically generates each alien.
+
+```python
+aliens = []
+
+for alien_num in range(30):
+    new_alien = {'color': 'green', 'points': 5, 'speed': 'slow'}
+    aliens.append(new_alien)
+
+for alien in aliens[:5]:
+    print(alien)
+print("...")  # Indicate that there are more aliens
+
+# Output:
+{'color': 'green', 'points': 5, 'speed': 'slow'}
+{'color': 'green', 'points': 5, 'speed': 'slow'}
+{'color': 'green', 'points': 5, 'speed': 'slow'}
+{'color': 'green', 'points': 5, 'speed': 'slow'}
+{'color': 'green', 'points': 5, 'speed': 'slow'}
+...
+```
+
+We can configure the points of our aliens;
+
+
+```python
+aliens = []
+
+for alien_n in range(30):
+    new_alien = {'color': 'green', 'points':5, 'speed':'slow'}
+    aliens.append(new_alien)
+
+for alien in aliens[:3]:
+    if alien['color'] == 'green':
+        alien['color'] = 'yellow'
+        alien['speed'] = 'medium'
+        alien['points'] = 10
+
+for alien in aliens[:5]:
+    print(alien)
+
+# Output:
+# {'color': 'yellow', 'points': 10, 'speed': 'medium'}
+# {'color': 'yellow', 'points': 10, 'speed': 'medium'}
+# {'color': 'yellow', 'points': 10, 'speed': 'medium'}
+# {'color': 'green', 'points': 5, 'speed': 'slow'}
+# {'color': 'green', 'points': 5, 'speed': 'slow'}
+```
+
+### A List in a Dictionary
+
+Instead of putting a dictionary inside a list, it is sometimes useful to put a list inside a dictionary. 
+
+In the example velow, two kinds of information are stored for eacg pizza: a type of crust and a list of toppings. The list of toppings is a value associated with the key toppings. To use the items in the list, we give the name of the dictionary and the key toppings, as we would any value in the dictionary. Instead of returning a single value, we get a list of toppings.
+
+```python
+pizza = {
+    'crust': 'thick',
+    'toppings': ['mushrooms', 'extra cheese'],
+}
+
+print(f"You ordered a {pizza['crust']}-crust pizza "
+    "with the following toppings: ")
+
+for topping in pizza['toppings']:
+    print(f"\t{topping}")
+
+# Output:
+You ordered a thick-crust pizza with the following toppings:
+        mushrooms
+        extra cheese
+```
+
+We can always nest a list inside a dictionary anytime we want more than one value to be associated with a single key in a dictionary. In our programming example, we can store each person's responses in a list allowing them to choose more than one favorite language.
+
+```python
+favorite_languages = {
+    'jen': ['python', 'rust'],
+    'sarah': ['c'],
+    'edward': ['rust', 'go'],
+    'phil': ['python', 'haskell']
+}
+
+for name, languages in favorite_languages.items():
+    print(f"\n{name.title()}'s favorite languages are:")
+    for language in languages:
+        print(f"\t{language.title()}")
+```
+
+The value associated with each name in favorite_languages is now a list. Note that some people have one favorite language and others have multiple favorites. When we loop through the dictionary, we use the variable name languages to hold each value from the dictionary, because we know that each value will be a list. Inside the main dictionary loop, we use another for loop to run through each person's list of favorite languages. Now each person can list as many favorite languages as they like. 
+
+```
+# Output:
+Jen's favorite languages are:
+        Python
+        Rust
+
+Sarah's favorite languages are:
+        C
+
+Edward's favorite languages are:
+        Rust
+        Go
+
+Phil's favorite languages are:
+        Python
+        Haskell
+```
+
+We could refine it further, to include an if statement at the beginning of the dictionary's for loop to see whether each person has more than one favorite language by examining the value of len(languages). If a person has more than one favorite, the output would stay the same. If the person has only one favorite language, we could change the wording to reflect that. For example, we could say, "Sarah's favorite language is C."
+
+### A Dictionary in a Dictionary
+
+We can nest a dictionary inside another dictionary, but the code can get complicated quickly. For example, if we have several users for a website, each with a unique username, we can use the usernames as the keys in a dictionary. We can then store information about each user by using a dictionary as the value associated with their username. 
+
+In the following listing, we store three pieces of information about each user: their first name, last name, and location. We will then access this information by looping through the usernames and dictionary of information associated with each username:
+
+```python
+users = {
+    'aeinstein': {
+        'first': 'albert',
+        'last': 'einstein',
+        'location': 'princeton',
+    },
+
+    'mcurie': {
+        'first': 'marie',
+        'last': 'curie',
+        'location': 'paris',
+    },
+}
+
+for username, user_info in users.items():
+    print(f"\nUsername: {username}")
+    full_name = f"{user_info['first']} {user_info['last']}"
+    location = user_info['location']
+
+    print(f"\tFull name: {full_name.title()}")
+    print(f"\tLocation: {location.title()}")
+```
+
+Here, we first define a dictionary called `users` that contains two users. Each username is a key in the `users` dictionary, and the value associated with each username is another dictionary that holds the user's first name, last name, and location.
+
+When we loop through the `users` dictionary, we use two variables: `username` to hold the key (the username) and `user_info` to hold the value (the nested dictionary). Inside the loop, we access the first name, last name, and location from the `user_info` dictionary and print them in a formatted way.
+
+When accessing the inner dictionary, the variable user_info which contains the dictionary of user information, has three keys: 'first', 'last', and 'location'. We use these keys to get the corresponding values for each user.
+
+# Output:
+```
+Username: aeinstein
+    Full name: Albert Einstein
+    Location: Princeton
+
+Username: mcurie
+    Full name: Marie Curie
+    Location: Paris
+```
+
