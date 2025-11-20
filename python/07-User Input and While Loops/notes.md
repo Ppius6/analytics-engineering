@@ -252,3 +252,276 @@ Please enter the name of a city you have visited.
 (Enter 'quit' to end the program.) quit
 ```
 
+### Using `continue` in a Loop
+
+Instead of breaking out of a loop entirely without executing the rest of its code, we can use the `continue` statement to return to the beginning of the loop, based on the result of a conditional test. 
+
+For example, consider a loop that counts from 1 to 10 but prints only the odd numbers in that range:
+
+```python
+current_number = 0
+while current_number < 10:
+    current_number += 1
+    if current_number % 2 == 0:
+        continue
+    
+    print(current_number)
+```
+
+First, we set `current_number` to 0. Because it is less than 10, Python enters the while loop. Once inside the loop, we increment the count by 1, so `current_number` is now 1. The `if` statement then checks the modulo of `current_number` and 2. If the result is 0, meaning `current_number` is divisible by 2 (i.e., it is even), the `continue` statement tells Python to ignore the rest of the loop and return to the beginning of the loop for the next iteration. If the number is odd, Python reaches the `print()` statement and prints the value of `current_number`. This process continues until `current_number` reaches 10.
+
+When we run this program, the output looks like this:
+
+```
+1
+3
+5
+7
+9
+```
+
+### Avoiding Infinite Loops
+
+Every while loop needs a way to stop running so it will not continue to run forever. For example, this counting loop should count from 1 to 5:
+
+```python
+x = 1
+while x <= 5:
+    print(x)
+    x += 1
+```
+
+If we omit the line `x += 1`, the loop will run forever because the condition `x <= 5` will always be true as the value of x will start at 1 but never change. 
+
+This is called an infinite loop. An infinite loop continues to execute as long as the program is running, which can cause the program to become unresponsive.
+
+It is important to test every while loop and make sure the loop stops when you expect it to. If we want the program to end when the users enters a certain input value, run the program and enter that value. If the program does not end, scrutinize the way the program handles the value that should cause the loop to exit. Also, make sure at least one part of the program can make the loop's condition False or cause it to reach a `break` statement.
+
+## Try it Yourself
+
+1. Write a loop that prompts the user to enter a series of pizza toppings until they enter a 'quit' value. As they enter each topping, print a message saying you'll add that topping to their pizza.
+
+```python
+prompt = "Kindly enter the pizza toppings you would like to have."
+prompt += "(Enter 'quit' after you finish to stop.) "
+
+while True:
+    topping = input(prompt)
+    
+    if topping == 'quit':
+        break
+    else:
+        print(f"I will add {topping} to your pizza.")
+```
+
+2. A movie theater charges different ticket prices depending on a person's age. If a person is under the age of 3, the ticket is free; if they are between 3 and 12, the ticket is $10; and if they are over age 12, the ticket is $15. Write a loop that prompts users for their age and then tells them the cost of their movie ticket. 
+
+```python
+prompt = "Please enter your age to determine the cost of your movie ticket."
+prompt += "(Enter 'quit' to exit.) "
+
+while True:
+    age = input(prompt)
+    
+    if age.lower() == 'quit':
+        break
+    else:
+        age = int(age)
+        if age < 3:
+            print("Your ticket is free!")
+        elif 3 <= age <= 12:
+            print("Your ticket costs $10.")
+        else:
+            print("Your ticket costs $15.")
+```
+
+3. Write a loop that never ends, and run it. (To end the loop, press Ctrl-C or close the window displaying the output.)
+
+```python
+x = 1
+while x <= 3:
+    print(x)
+    x += 1 # This prevents the infinite loop
+```
+
+## Using a while Loop with Lists and Dictionaries
+
+So far, we have only worked with only one piece of user information at a time. We received the user's input and then printed the input or a response to it.
+
+However, we can use a while loop to collect as much input as we need and store that information in a list or dictionary for further processing later on. To modify a list as we work through it, we can use the `while` loop to move items from one list to another. 
+
+### Moving Items from One List to Another
+
+Consider a list of newly registered but unverified users of a website. After we verify these users, how can we move them to a list of verified users? One way would be to use a while loop to pull users from the list of unconfirmed users as we verify them and then add them to a separate list of confirmed users.
+
+```python
+unconfirmed_users = ['alice', 'brian', 'candace']
+confirmed_users = []
+
+# Verify each user until there are no more unconfirmed users.
+while unconfirmed_users:
+    current_user = unconfirmed_users.pop()
+
+    print(f"Verifying user: {current_user.title()}")
+    confirmed_users.append(current_user)
+
+# Display all confirmed users.
+print("\nThe following users have been confirmed:")
+for confirmed_user in confirmed_users:
+    print(confirmed_user.title())
+```
+    
+We begin with a list of `unconfirmed_users` and an empty list of `confirmed_users` to store the verified users. The while loop runs as long as there are unconfirmed users in the list. Inside the loop, we use the `pop()` method to remove the last user from the `unconfirmed_users` list and store it in the variable `current_user`. We then print a message indicating that we are verifying that user and add them to the `confirmed_users` list using the `append()` method. Once all users have been verified, we print out the list of confirmed users.
+
+When we run this program, the output looks like this:
+
+```
+Verifying user: Candace
+Verifying user: Brian
+Verifying user: Alice
+
+The following users have been confirmed:
+Candace
+Brian
+Alice
+```
+
+### Removing All Instances of Specific Values from a List
+
+We earlier used `remove()` to delete a specific value from a list. The `remove()` function worked because the value we were interested in appeared only once in the list. But what if we want to remove all instances of a value from a list?
+
+In the example below, we have a list of pets that includes several instances of the value 'cat'. We can use a while loop to remove all instances of 'cat' from the list:
+
+```python
+pets = ['dog', 'cat', 'dog', 'goldfish', 'cat', 'rabbit', 'cat']
+print(pets)
+
+while 'cat' in pets:
+    pets.remove('cat')
+print(pets)
+```
+
+We start with a list of `pets` that contains several 'cat' entries. The while loop checks if 'cat' is still in the `pets` list. If it is, the `remove()` method deletes the first occurrence of 'cat' from the list. This process continues until there are no more 'cat' entries left in the list. Finally, we print the modified list.
+
+When we run this program, the output looks like this:
+
+```
+['dog', 'cat', 'dog', 'goldfish', 'cat', 'rabbit', 'cat']
+['dog', 'dog', 'goldfish', 'rabbit']
+```
+
+### Filling a Dictionary with User Input
+
+We can prompt for as much input as we need in each pass through a while loop. For example, we can make a polling program for the participant's name and response. We then store the data we gather in a dictionary, because we want to connect each response with a particular user.
+
+```python
+responses = {}
+
+polling_active = True
+
+while polling_active:
+    # Prompt for the person's name and response.
+    name = input("\nWhat is your name? ")
+    response = input("Which mountain would you like to climb someday? ")
+
+    # Store the response in the dictionary.
+    responses[name] = response
+
+    # Find out if anyone else is going to take the poll.
+    repeat = input("Would you like to let another person respond? (yes/no) ")
+    if repeat.lower() == 'no':
+        polling_active = False
+
+# Polling is complete. Show the results.
+print("\n--- Poll Results ---")
+for name, response in responses.items():
+    print(f"{name} would like to climb {response}.")
+```
+
+The program first defines an empty dictionary called `responses` and sets a flag `polling_active` to `True` to indicate that the polling is active. As long as `polling_active` is `True`, Python will run the code in the while loop.
+
+Within the loop, the user is prompted to enter their name and a mountain they would like to climb. The information is stored in the responses dictionary, and the user is asked whether or not to keep the poll running. If the user enters 'no', the flag `polling_active` is set to `False`, which causes the loop to end.
+
+After the loop ends, the program prints the results of the poll by iterating through the `responses` dictionary and displaying each participant's name along with their chosen mountain.
+
+When we run this program, the output might look like this:
+
+```
+What is your name? Alice
+Which mountain would you like to climb someday? Everest
+Would you like to let another person respond? (yes/no) yes
+
+What is your name? Bob
+Which mountain would you like to climb someday? Kilimanjaro
+Would you like to let another person respond? (yes/no) no
+
+--- Poll Results ---
+Alice would like to climb Everest.
+Bob would like to climb Kilimanjaro.
+```
+
+## Try it Yourself
+
+1. Make a list called sandwich_orders and fill it with the names of various sandwiches. Then make an empty list called finished_sandwiches. Loop through the list of sandwich orders and print a message for each order, such as "I made your tuna sandwich." As each sandwich is made, move it to the list of finished sandwiches. After all the sandwiches have been made, print a message listing each sandwich that was made.
+
+```python
+sandwich_orders = ['tuna', 'ham', 'veggie', 'turkey']
+finished_sandwiches = []
+
+while sandwich_orders:
+    order = sandwich_orders.pop()
+    
+    print(f"I made your {order}.")
+    finished_sandwiches.append(order)
+    
+print("The following sandwiches have been made: ")
+for orders in finished_sandwiches:
+    print(orders)
+```
+
+2. Using the list sandwich_orders from the previous exercise, make sure the sandwich 'pastrami' appears in the list at least three times. Add code near the beginning of your program to print a message saying the deli has run out of pastrami, and then use a while loop to remove all occurrences of 'pastrami' from sandwich_orders. Make sure no pastrami sandwiches end up in finished_sandwiches.
+
+```python
+sandwich_orders = ['tuna', 'pastrami', 'ham', 'pastrami', 'veggie', 'pastrami', 'turkey']
+finished_sandwiches = []
+
+print("The deli has run out of pastrami.")
+
+while 'pastrami' in sandwich_orders:
+    sandwich_orders.remove('pastrami')
+
+while sandwich_orders:
+    order = sandwich_orders.pop()
+    print(f"I made your {order}.")
+    finished_sandwiches.append(order)
+
+print("The following sandwiches have been made: ")
+for orders in finished_sandwiches:
+    print(orders)
+```
+3. Write a program that polls users about their dream vacation. Write a prompt similar to If you could visit one place in the world, where would you go? Include a block of code that prints the results of the poll.
+
+```python
+responsess = {}
+
+polling_active = True
+
+while polling_active:
+    # Prompt for the person's name and response.
+    name = input("\nWhat is your name? ")
+    response = input("If you could visit one place in the world, where would you go? ")
+
+    # Store the response in the dictionary.
+    responsess[name] = response
+
+    # Find out if anyone else is going to take the poll.
+    repeat = input("Would you like to let another person respond? (yes/no) ")
+    if repeat.lower() == 'no':
+        polling_active = False
+
+# Polling is complete. Show the results.
+print("\n--- Poll Results ---")
+for name, response in responsess.items():
+    print(f"{name} would like to go to {response}.")
+```
+
