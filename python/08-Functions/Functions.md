@@ -185,4 +185,172 @@ describe_pet('simba')
 
 Note that we have also changed the order of the parameters in the function definition since the default value makes it unnecessary to specify a type of animal as an argument. So, we are left with `pet_name` as the only parameter and Python will still interpret this as a positonal argument so if the function is called with just a pet's name, that argument will match with the first parameter listed in the function's definition. This is the reason the first parameter needs to be `pet_name`.
 
-### Equivalent Function Calls
+### Equivalent Function Calls 
+
+Since positional arguments, keyword arguments, and default values can all be used together, we will often have several equivalent ways to call a function. For example, in `def describe_pet(pet_name, animal_type='dog'):` the argument always needs to be provided for `pet_name`, and this value can be provided using the positional or keyword format. If the animal being described is not a dog, an argument for `animal_type` must be included in the call, and this argument can also be specified using the positional or keyword format.
+
+So, all of the following calls would work for this function:
+
+
+```python
+# A dog named Willie.
+describe_pet('willie')
+describe_pet(pet_name='willie')
+
+# A hamster named Harry.
+describe_pet('harry', 'hamster')
+describe_pet(pet_name='harry', animal_type='hamster')
+describe_pet(animal_type='hamster', pet_name='willie')
+```
+
+Each of the above function calls would have the same output as the previous examples.
+
+### Avoiding Argument Errors
+
+The common error that may arise is unmatched arguments. They occur when you provide fewer or more arguments than a function needs to do its work. 
+
+For example, failing to pass an argument to `describe_pet()` in this example;
+
+```python
+def describe_pet(pet_name, animal_type='dog'):
+    """
+    Display information about a pet.
+    """
+    print(f"\nI have a {animal_type}.")
+    print(f"My {animal_type}'s name is {pet_name.title()}.")
+
+describe_pet()
+```
+
+gives a `TypeError: describe_pet() missing 1 required positional argument: 'pet_name'`
+
+## Return Values
+
+A function can also process some data and then return a value or a set of values. The value the function returns is called a `return value`. The return statement takes a value from inside a function and sends it back to the line that called the function. Return values allow us to move much of our program's grunt work into functions, which can simplify the body of our program.
+
+### Returning a Simple Value
+
+Looking at the function below that takes a first and last name, and returns a neatly formatted full name:
+
+```python
+def get_formatted_name(first_name, last_name):
+    """
+    Return a full name, neatly formatted.
+    """
+    full_name = f"{first_name} {last_name}"
+    return full_name.title()
+
+musician = get_formatted_name('jimi', 'hendrix')
+print(musician)
+
+# Output: Jimi Hendrix
+```
+
+The code above takes the inputs and formats the full name by adding a space between them and later converting them to title case. 
+
+NOTE: When you call a function that returns a value, you need to provide a variable that the returned value can be assigned to. In this case, the returned value is assigned to the variable `musician`
+
+### Making an Argument Optional
+
+It may make sense at times to make an argument optional, so that people using the function can choose to provide extra information only if they want to. We can make use of default values to make an argument optional. 
+
+For example, we may want to expand `get_formatted_name()` to handle middle names as well. 
+
+```python
+def get_formatted_name(first_name, middle_name, last_name):
+    """
+    Return a full name, neatly formatted.
+    """
+    full_name = f"{first_name} {middle_name} {last_name}"
+    return full_name.title()
+
+musician = get_formatted_name('jimi', 'lee', 'hendrix')
+print(musician)
+```
+
+However, to make it optional to add a `middle_name` argument, we can give it an empty default value and ignore the argument unless the user provides a value, and also move it to the end of the list of parameters.
+
+```python
+def get_formatted_name(first_name, last_name, middle_name=''):
+    """
+    Return a full name, neatly formatted.
+    """
+    if middle_name:
+        full_name = f"{first_name} {middle_name} {last_name}"
+    else:
+        full_name = f"{first_name} {last_name}"
+
+    return full_name.title()
+
+musician = get_formatted_name('jimi', 'hendrix')
+print(musician)
+
+musician = get_formatted_name('jimi', 'lee', 'hendrix')
+print(musician)
+```
+
+In the above code, we add a conditional check to see if a middle name has been provided. If it evaluates to `True`, it adds the provided middle name to form the full name, otherwise, it returns the provided first and last name as the empty middle name will fail the if test and the else block will run. 
+
+### Returning a Dictionary
+
+A function can return any kind of value we may want it to. In the example below, we take in parts of a name and return a dictionary representing a person:
+
+```python
+def build_person(first_name, last_name):
+    """
+    Return a dictionary of information about a person.
+    """
+    person = {'first': first_name, 'last': last_name}
+    return person
+
+musician = build_person('me', 'you')
+print(musician)
+
+# Output: {'first': 'me', 'last': 'you'}
+```
+We can optionally extend it to accept optional values like a middle name, age, occupation, or any other information we may have to store about a person.
+
+```python
+def build_person(first_name, last_name, age=None):
+    """
+    Return a dictionary of information about a person.
+    """
+    person = {'first': first_name, 'last': last_name}
+    if age:
+        person['age'] = age
+    return person
+
+musician = build_person('me', 'you', age=30)
+print(musician)
+
+#Output: {'first': 'me', 'last': 'you', 'age': 30}
+```
+
+### Using a Function with a while Loop
+
+We can integrate while loops to build on our previous function
+
+```python
+def get_formatted_name(first_name, last_name):
+    """
+    Return a full name, neatly formatted.
+    """
+    full_name = f"{first_name} {last_name}"
+    return full_name.title()
+
+while True:
+    print("\nPlease tell me your name: ")
+    print("(enter 'q' at any time to quit)")
+
+    f_name = input("First name: ")
+    if f_name == 'q':
+        break
+
+    l_name = input("Last name: ")
+    if l_name == 'q':
+        break
+
+    formatted_name = get_formatted_name(f_name, l_name)
+    print(f"\nHello, {formatted_name}!")
+```
+
