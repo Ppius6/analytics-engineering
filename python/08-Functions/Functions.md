@@ -462,3 +462,199 @@ We may decide that even though we have printed all the designs, we want to keep 
 
 We can pass the function a copy of the list, not the original. Any changes the function makes to the list will affect only the copy, leaving the original list intact: `function_name(list_name[:])`, `print_models(unprinted_designs[:], completed_models)`
 
+## Try it Yourself
+
+Start with a copy of your program from Exercise 8-10. Write a function called send_messages() that prints each text message and moves each message to a new list called sent_messages as it’s printed. After calling the function, print both of your lists to make sure the messages were moved correctly.
+
+```python
+messages = ["Hey, you.", "Ni mimi", "Unanikumbuka?"]
+sent_messages = []
+
+
+def send_messages(messages_list):
+    """
+    Print each message and move it to sent_messages list.
+    """
+    while messages_list:
+        current_message = messages_list.pop()
+        print(f"Sending message: {current_message}")
+        sent_messages.append(current_message)
+
+
+send_messages(messages)
+
+print("\nMessages in the original list:")
+print(messages)
+
+print("\nMessages in the sent_messages list:")
+print(sent_messages)
+
+# Output
+# Sending message: Unanikumbuka?
+# Sending message: Ni mimi
+# Sending message: Hey, you.
+# >>> print("\nMessages in the original list:")
+
+# Messages in the original list:
+# >>> print(messages)
+# []
+# >>> print("\nMessages in the sent_messages list:")
+
+# Messages in the sent_messages list:
+# >>> print(sent_messages)
+# ['Unanikumbuka?', 'Ni mimi', 'Hey, you.']
+```
+
+3 - Start with your work from Exercise 8-10. Call the function send_messages() with a copy of the list of messages. After calling the function, print both of your lists to show that the original list has retained its messages.
+
+```python
+messages = ["Hey, you.", "Ni mimi", "Unanikumbuka?"]
+sent_messages = []
+
+
+def send_messages(messages_list[:]):
+    """
+    Print each message and move it to sent_messages list.
+    """
+    while messages_list:
+        current_message = messages_list.pop()
+        print(f"Sending message: {current_message}")
+        sent_messages.append(current_message)
+
+send_messages(messages[:])  # Pass a copy of the list
+
+# Output
+# print("\nMessages in the original list:")
+# print(messages)
+
+# print("\nMessages in the sent_messages list:")
+# print(sent_messages)
+
+# >>> send_messages(messages[:])  # Pass a copy of the list
+# Sending message: Unanikumbuka?
+# Sending message: Ni mimi
+# Sending message: Hey, you.
+# >>> print("\nMessages in the original list:")
+
+# Messages in the original list:
+# >>> print(messages)
+# ['Hey, you.', 'Ni mimi', 'Unanikumbuka?']
+# >>> print("\nMessages in the sent_messages list:")
+
+# Messages in the sent_messages list:
+# >>> print(sent_messages)
+# ['Unanikumbuka?', 'Ni mimi', 'Hey, you.']
+```
+
+## Passing an Arbitrary Number of Arguments
+
+We may not know how many arguments a function may need to accept. Python allows a function to collect an arbitrary number of arguments from the calling statement. 
+
+For example, consider a function that builds a Pizza. It needs to accept a number of toppings, but we cannot know ahead of time how many toppings a person will want. So, our function would have one parameter `*toppings`, but the parameter would collect as many arguments as the calling line provides:
+
+```python
+def make_pizza(*toppings):
+    """
+    Print the list of toppings that have been requested.
+    """
+    print(toppings)
+
+make_pizza('Veggies')
+make_pizza('Veggies', 'Meat', 'Coconut')
+
+# Output
+# >>> make_pizza('Veggies')
+# ('Veggies',)
+# >>> make_pizza('Veggies', 'Meat', 'Coconut')
+# ('Veggies', 'Meat', 'Coconut')
+```
+
+The asterisk in the parameter name tells Python to make a tuple called `toppings` with all the values this function receives. 
+
+We can even replace the print() call with a loop that runs through the list of toppings and describes the pizza being ordered:
+
+```python
+def make_pizza(*toppings):
+    """
+    Summarize the pizza we are about to make.
+    """
+    print("\nMaking a pizza with the following toppings:")
+    for topping in toppings:
+        print(f"- {topping}")
+
+make_pizza('Veggies')
+make_pizza('Veggies', 'Meat', 'Coconut')
+
+# Output:
+# Making a pizza with the following toppings:
+# - Veggies
+# >>> make_pizza('Veggies', 'Meat', 'Coconut')
+
+# Making a pizza with the following toppings:
+# - Veggies
+# - Meat
+# - Coconut
+```
+
+### Mixing Positional and Arbitrary Arguments
+
+If we want a function to accept several different kinds of arguments, the parameter that accepts an arbitrary number of arguments must be placed last in the function definition. Python matches positional and keyword arguments first and then collects any remaining arguments in the final parameter.
+
+For example, if the function needs to take in a size for the pizza, that parameter must come before the parameter `*toppings`:
+
+
+```python
+def make_pizza(size, *toppings):
+    """
+    Summarize the pizza we are about to make.
+    """
+    print(f"\nMaking a {size}-inch pizza with the following toppings:")
+    for topping in toppings:
+        print(f"- {topping}")
+
+make_pizza(16, 'Veggies')
+make_pizza(12, 'Veggies', 'Meat', 'Coconut')
+
+# Output:
+# >>> make_pizza(16, 'Veggies')
+
+# Making a 16-inch pizza with the following toppings:
+# - Veggies
+# >>> make_pizza(12, 'Veggies', 'Meat', 'Coconut')
+
+# Making a 12-inch pizza with the following toppings:
+# - Veggies
+# - Meat
+# - Coconut
+```
+
+Python assigns the first value it receives to the parameter size, and all the other values that come after are stored in the tupple `toppings`. The function calls include an argument for the size first, followed by as many toppings as needed.
+
+### Using Arbitrary Keyword Arguments
+
+We may want to accept an arbitrary number of arguments, but we may not know ahead of time what kind of information will be passed to the function. We could write functions that accept as many key-value pairs as the calling statement provides.
+
+An example would be to build user profiles: we know we will get information about a user, but we are not sure what kind of information we would receive. 
+
+The function `build_profile()` in the following example always takes in a first and last name, but it accepts an arbitrary number of keyword arguments as well:
+
+```python
+def build_profile(first, last, **user_info):
+    """
+    Build a dictionary with everything we know about a user
+    """
+    user_info['first_name'] = first
+    user_info['last_name'] = last
+    return user_info
+
+user_profile = build_profile('Albert', 'Einstein', location='Nairobi', field='Physics')
+print(user_profile)
+
+# Output:
+# {'location': 'Nairobi', 'field': 'Physics', 'first_name': 'Albert', 'last_name': 'Einstein'}
+```
+
+The double asterisks before the parameter `**user_info` causes Python to create a dictionary called `user_info` with all the extra name-value pairs the function reserves. Within the function, we can access the key-value pairs in user_info just as we would for any dictionary.
+
+In the function, we add the first and last names to the user_info dictionary because we will always receive these two pieces of information from the user, and they have not been placed into the dictionary yet. Then we return the user_info dictionary to the function call line.
+
