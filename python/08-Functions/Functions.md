@@ -658,3 +658,185 @@ The double asterisks before the parameter `**user_info` causes Python to create 
 
 In the function, we add the first and last names to the user_info dictionary because we will always receive these two pieces of information from the user, and they have not been placed into the dictionary yet. Then we return the user_info dictionary to the function call line.
 
+### Try it Yourself
+
+8-12 - Sandwiches: Write a function that accepts a list of items a person wants on a sandwich. The function should have one parameter that collects as many items as the function call provides, and it should print a summary of the sandwich that is being ordered. Call the function three times, using a different number of arguments each time.
+
+```python
+def make_sandwich(*items):
+    """
+    Print a summary of the sandwich that is being ordered.
+    """
+    print(f"\nMaking a sandwich with the following additions:")
+    for item in items:
+        print(f"- {item}")
+
+
+make_sandwich("lettuce", "tomato", "bacon")
+make_sandwich("turkey", "cheese")
+
+# Output:
+# >>> make_sandwich("lettuce", "tomato", "bacon")
+
+# Making a sandwich with the following additions:
+# - lettuce
+# - tomato
+# - bacon
+# >>> make_sandwich("turkey", "cheese")
+
+# Making a sandwich with the following additions:
+# - turkey
+# - cheese
+```
+
+8-13 - User Profile: Start with a copy of user_profile.py from page 153. Build a profile of yourself by calling build_profile(), using your first and last names and three other key-value pairs that describe you.
+
+```python
+def build_profile(first, last, **user_info):
+    """
+    Build a dictionary containing everything about me.
+    """
+    user_info["first_name"] = first
+    user_info["last_name"] = last
+    
+    return user_info
+
+my_profile = build_profile("Pius", "Mutuma", location="Meru", field="Engineering", hobby="Reading")
+print(my_profile)
+
+# Output:
+# {'location': 'Meru', 'field': 'Engineering', 'hobby': 'Reading', 'first_name': 'Pius', 'last_name': 'Mutuma'}
+```
+
+8-14 - Cars: Write a function that stores information about a car in a dictionary. The function should always receive a manufacturer and a model name. It should then accept an arbitrary number of keyword arguments. Call the function with the required information and two other name-value pairs, such as color and optional features. Your function should work for a call like this one: car = make_car('subaru', 'outback', color='blue', tow_package=True). Print the dictionary that’s returned to make sure all the information was stored correctly.
+
+```python
+def make_car(manufacturer, model_name, **car_info):
+    """
+    Build a car profile
+    """
+    car_info["manufacturer"] = manufacturer
+    car_info["name"] = model_name
+    
+    return car_info
+
+car = make_car('subaru', 'outback', color='blue', tow_package=True)
+print(car)
+
+# Output:
+# {'color': 'blue', 'tow_package': True, 'manufacturer': 'subaru', 'name': 'outback'}
+```
+
+## Storing your Functions in Modules
+
+Functions offer the advantage of separating blocks of code from the main program. We can go a step further by storing our functions in a separate file known as a `module` and then `importing` that module into the main program. An `import` statement tells Python to make the code in a module available in the currently running program file.
+
+Storing our functions in a separate file allows us to hide the details of our program's code and focus on its higher-level logic, reuse functions in many different programs. When we store our functions in separate files, we can share those files with other programmers withouthaving to share our entire program. 
+
+There are several ways to import a module:
+
+### 1. Importing an Entire Module
+
+To start importing functions, we first need to create a module. A `module` is a file ending in `.py` that contains the code we want to import into our program. 
+
+For example, in the program below, `pizza.py` we will remove everything from the file except the function:
+
+```python
+def make_pizza(size, *toppings):
+    """
+    Summarize the pizza we are about to make
+    """
+    print(f"\nMaking a {size}-inch pizza with the following toppings:")
+    for topping in toppings:
+        print(f"- {topping}")
+```
+
+Now, we will make another file in the same directory as `pizza.py` known as `making_pizza.py`. The file imports the module we just created and then makes two calls to `make_pizza():`
+
+```python
+import pizza # pizza is the name of pizza.py
+
+pizza.make_pizza(16, 'pepperoni')
+pizza.make_pizza(12, 'mushrooms', 'green peppers', 'extra cheese')
+```
+
+When Python reads this file, the line `import pizza ` tells Python to open the file `pizza.py` and copy all the functions from it into this program. The code produces the same output as the original program that did not import a module.
+
+### 2. Importing Specific Functions
+
+We can also import a specific function from a module. The general syntax for this approach is:
+
+`from module_name import function_name`
+
+We can also import as many functions as we want from a module by separating each function's name with a comma:
+
+`from module_name import function_0, function_1, function_2`
+
+For example, if we want to import just the function we would like to use:
+
+```python
+from pizza import make_pizza
+
+pizza.make_pizza(16, 'pepperoni')
+pizza.make_pizza(12, 'mushrooms', 'green peppers', 'extra cheese')
+```
+
+### 3. Using as to Give a Function an Alias
+
+If the name of a function we are importing might conflict with an existing name in your program, or if the function name is long, we can use a short, unique alias.
+
+```python
+from pizza import make_pizza as mp
+
+mp(16, 'pepperoni')
+mp(12, 'mushrooms', 'green peppers', 'extra cheese')
+```
+
+The general syntax for providing an alias is:
+
+`from module_name import function_name as fn`
+
+### 4. Using as to Give a Module an Alias
+
+We can also provide an alias for a module name. 
+
+Calling `p.make_pizza()` is more concise than calling `pizza.make_pizza()`
+
+
+```python
+import pizza as p # pizza is the name of pizza.py
+
+p.make_pizza(16, 'pepperoni')
+p.make_pizza(12, 'mushrooms', 'green peppers', 'extra cheese')
+```
+
+The general syntax for this approach is:
+
+`import module_name as mn`
+
+### 5. Importing all Functions in a Module
+
+We can tell Python to import every function in a module by using the asterisk (*) operator:
+
+```python
+from pizza import *
+
+make_pizza(16, 'pepperoni')
+make_pizza(12, 'mushrooms', 'green peppers', 'extra cheese')
+```
+
+The asterisk in the import statement tells Python to copy every function from the module pizza into this program file. It is recommended to however, import the necessary function(s) we are going to use to avoid getting unexpected results.
+
+## Styling Functions
+
+1. Functions should have descriptive names, and these names should use lowercase letters and underscores. This will help us and others understand what our code is trying to do.
+
+2. Every function should have a comment that explains concisely what the function does. It should appear immediately after the function definition and use the docstring format.
+
+3. If you specify a default value for a parameter, no spaces should be used on either side of the equal sign: `def function_name(parameter_0, parameter_1='default value')`. The same convention should be used for keyword arguments in function calls: `function_name(value_0, parameter_1='value')`
+
+4. If your program or module has more than one function, you can separate each by two blank lines to make it easier to see where one function ends and the next one begins. 
+
+5. All import statements should be written at the beginning of a file. The only exception is if you use comments at the beginning of your file to describe the overall program.
+
+
