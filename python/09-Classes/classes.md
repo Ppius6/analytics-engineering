@@ -512,3 +512,295 @@ my_used_car.read_odometer()
 # >>> my_used_car.read_odometer()
 # This car has 23600 miles on it.
 ```
+
+## Inheritance
+
+When writing a class, we do not always have to start from scratch. 
+
+If the class we are writing is a specialize version of another class we wrote earlier, we can use `inheritance`. When one class inherits from another, it takes on the attributes and methods of the first class. The original class is called the `parent class`, and the new class is the `child class`. 
+
+The child class can inherit any or all of the attributes and methods of its parent class, but it is also free to define new attributes and methods of its own.
+
+### The __init__() Method for a Child Class
+
+When we are writing a new class based on an existing class, we will often want to call the `__init__()` method from the parent class. This will initialize any attributes that were defined in the parent `__init__()` method and make them available in the child class. 
+
+For example, for an electric car, it is just a specific kind of car, so we can base our new `ElectricCar` class on the `Car` class we wrote earlier. Then we will only have to write code for the attributes and behaviors specific to electric cars.
+
+```python
+class Car:
+
+    def __init__(self, make, model, year):
+        """
+        Initialize attributes to describe a car
+        """
+        self.make = make
+        self.model = model
+        self.year = year
+        self.odometer_reading = 0
+
+    def get_descriptive_name(self):
+        """
+        Return a neatly formatted descriptive name
+        """
+        long_name = f"{self.year} {self.make} {self.model}"
+        return long_name.title()
+
+    def read_odometer(self):
+        """
+        Print a statement showing the car's mileage
+        """
+        print(f"This car has {self.odometer_reading} miles on it.")
+
+    def update_odometer(self, mileage):
+        """
+        Set the odometer reading to the given value.
+        Reject the change if it attempts to roll the odometer back.
+        """
+        if mileage >= self.odometer_reading:
+            self.odometer_reading = mileage
+        else:
+            print("You cannot roll back an odometer! Mchezo wa Taoni!")
+
+    def increment_odometer(self, miles):
+        """
+        Add the given amount to the odometer reading
+        """
+        self.odometer_reading += miles
+
+class ElectricCar(Car):
+    """
+    Represent aspects of a car, specific to electric vehicles
+    """
+
+    def __init__(self, make, model, year):
+        """
+        Initialize attributes of the parent class
+        """
+        super().__init__(make, model, year)
+
+my_leaf = ElectricCar('nissan', 'leaf', 2024)
+print(my_leaf.get_descriptive_name())
+
+# Output:
+# >>> my_leaf = ElectricCar("nissan", "leaf", 2024)
+# >>> print(my_leaf.get_descriptive_name())
+# 2024 Nissan Leaf
+```
+
+When we create a child class, the parent class must be part of the current file and must appear before the child class in the file. We then define the child class, `ElectricCar` and include the name of the parent class in the parentheses in the definition of a child class: `class ElectricCar(Car)`. Then the `__init__()` method takes in the information required to make a Car instance.
+
+The `Super()` function is a special function that allows us to call a method from the parent class. Here, we call the `__init__()` method from our parent class, which gives the child class, `ElectricCar` instance all the attributes defined in that method. The name `super` comes from a convention of calling the parent class a `superclass` and the child class a `subclass`.
+
+We then test whether the inheritance is working properly by trying to create an electric car with the same kind of information we would provide when making a regular car. 
+
+### Defining Attributes and Methods for the Child Class
+
+Once we have a child class that inherits from a parent class, we can add any new attributes and methods necessary to differentiate the child class from the parent class. 
+
+Updating our previous program:
+
+```python
+class Car:
+
+    def __init__(self, make, model, year):
+        """
+        Initialize attributes to describe a car
+        """
+        self.make = make
+        self.model = model
+        self.year = year
+        self.odometer_reading = 0
+
+    def get_descriptive_name(self):
+        """
+        Return a neatly formatted descriptive name
+        """
+        long_name = f"{self.year} {self.make} {self.model}"
+        return long_name.title()
+
+    def read_odometer(self):
+        """
+        Print a statement showing the car's mileage
+        """
+        print(f"This car has {self.odometer_reading} miles on it.")
+
+    def update_odometer(self, mileage):
+        """
+        Set the odometer reading to the given value.
+        Reject the change if it attempts to roll the odometer back.
+        """
+        if mileage >= self.odometer_reading:
+            self.odometer_reading = mileage
+        else:
+            print("You cannot roll back an odometer! Mchezo wa Taoni!")
+
+    def increment_odometer(self, miles):
+        """
+        Add the given amount to the odometer reading
+        """
+        self.odometer_reading += miles
+
+class ElectricCar(Car):
+    """
+    Represent aspects of a car, specific to electric vehicles
+    """
+
+    def __init__(self, make, model, year):
+        """
+        Initialize attributes of the parent class
+        Then initialize attributes specific to an electric car
+        """
+        super().__init__(make, model, year)
+        self.battery_size = 40
+    
+    def describe_battery(self):
+        """
+        Print a statement describing the battery size
+        """
+        print(f"This car has a {self.battery_size}-kWh battery")
+
+my_leaf = ElectricCar('nissan', 'leaf', 2024)
+print(my_leaf.get_descriptive_name())
+my_lead.describe_battery()
+
+# Output:
+# >>> my_leaf = ElectricCar("nissan", "leaf", 2024)
+# >>> print(my_leaf.get_descriptive_name())
+# 2024 Nissan Leaf
+# >>> my_leaf.describe_battery()
+# This car has a 40-kWh battery
+# >>> 
+```
+
+We add a new attribute `self.battery_size` that is associated with all instances created in the child class and not the parent class, in any way. We can always add as many attributes and methods as we need to model an electric car to whatever degree of accuracy we need.
+
+### Overriding Methods from the Parent Class
+
+We can override any method from the parent class that does not fit what we are trying to model with the child class. To do this, we define a method in the child class with the same name as the method we want to override in attention to the method we define in the child class.
+
+Say the class `Car` had a method called `fill_gas_tank()`. This method is meaningless for an all-electric vehicle so we might want to override this method:
+
+```python
+class ElectricCar(Car):
+    """
+    Represent aspects of a car, specific to electric vehicles
+    """
+
+    def __init__(self, make, model, year):
+        """
+        Initialize attributes of the parent class
+        Then initialize attributes specific to an electric car
+        """
+        super().__init__(make, model, year)
+        self.battery_size = 40
+    
+    def describe_battery(self):
+        """
+        Print a statement describing the battery size
+        """
+        print(f"This car has a {self.battery_size}-kWh battery")
+
+    def fill_gas_tank(self):
+        """
+        Electric cars do not have gas tanks
+        """
+        print("This car does not have a gas tank!")
+```
+
+Now, if someone tries to call `fill_gas_tank()` with an electric car, Python will ignore the method `fill_gas_tank()` in `Car` and run this code instead. 
+
+When we use inheritance, we can make our child classes retain what we need and override anything we do not need from the parent class.
+
+### Instances as Attributes
+
+When modelling something from the real world in code, we may find that we are adding more and more detail to a class. Therefore, the list of attributes and methods continue to grow as well as the files. In this instance, we may realize that part of one class can be written as a separate class. We can break a large class into smaller classes that work together, an approach known as `composition`
+
+For example, if we continue adding detail to the `ElectricCar` class, we might notice that we are adding as many attributes and methods specific to the car's battery. When we see this happening, we can stop and move those attributes and methods to a separate class, `Battery`, then use a `Battery` instance as an attribute in the `ElectricCar` class:
+
+```python
+class Car:
+
+    def __init__(self, make, model, year):
+        """
+        Initialize attributes to describe a car
+        """
+        self.make = make
+        self.model = model
+        self.year = year
+        self.odometer_reading = 0
+
+    def get_descriptive_name(self):
+        """
+        Return a neatly formatted descriptive name
+        """
+        long_name = f"{self.year} {self.make} {self.model}"
+        return long_name.title()
+
+    def read_odometer(self):
+        """
+        Print a statement showing the car's mileage
+        """
+        print(f"This car has {self.odometer_reading} miles on it.")
+
+    def update_odometer(self, mileage):
+        """
+        Set the odometer reading to the given value.
+        Reject the change if it attempts to roll the odometer back.
+        """
+        if mileage >= self.odometer_reading:
+            self.odometer_reading = mileage
+        else:
+            print("You cannot roll back an odometer! Mchezo wa Taoni!")
+
+    def increment_odometer(self, miles):
+        """
+        Add the given amount to the odometer reading
+        """
+        self.odometer_reading += miles
+
+
+class Battery:
+    """
+    A simple attempt to model a battery for an electric car
+    """
+    def __init__(self, battery_size=40):
+        """
+        Initialize the battery's attributes
+        """
+        self.battery_size = battery_size
+
+    def describe_battery(self):
+        """
+        Print a statement describing the battery size
+        """
+        print(f"This car has a {self.battery_size}-kWh battery")
+
+
+class ElectricCar(Car):
+    """
+    Represent aspects of a car, specific to electric vehicles
+    """
+
+    def __init__(self, make, model, year):
+        """
+        Initialize attributes of the parent class
+        Then initialize attributes specific to an electric car
+        """
+        super().__init__(make, model, year)
+        self.battery = Battery()
+    
+
+my_leaf = ElectricCar('nissan', 'leaf', 2024)
+print(my_leaf.get_descriptive_name())
+my_leaf.battery.describe_battery()
+
+# Output:
+# >>> print(my_leaf.get_descriptive_name())
+# 2024 Nissan Leaf
+# >>> my_leaf.battery.describe_battery()
+# This car has a 40-kWh battery
+# >>> 
+```
+
+In the `ElectricCar` class, we add an attribute `self.battery` which tells Python to create a new instance of `Battery` with a default size of 40.
