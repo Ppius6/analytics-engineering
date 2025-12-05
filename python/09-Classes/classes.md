@@ -804,3 +804,167 @@ my_leaf.battery.describe_battery()
 ```
 
 In the `ElectricCar` class, we add an attribute `self.battery` which tells Python to create a new instance of `Battery` with a default size of 40.
+
+We can add another method to `Battery` that reports the range of the car based on the battery size:
+
+```python
+class Car:
+
+    def __init__(self, make, model, year):
+        """
+        Initialize attributes to describe a car
+        """
+        self.make = make
+        self.model = model
+        self.year = year
+        self.odometer_reading = 0
+
+    def get_descriptive_name(self):
+        """
+        Return a neatly formatted descriptive name
+        """
+        long_name = f"{self.year} {self.make} {self.model}"
+        return long_name.title()
+
+    def read_odometer(self):
+        """
+        Print a statement showing the car's mileage
+        """
+        print(f"This car has {self.odometer_reading} miles on it.")
+
+    def update_odometer(self, mileage):
+        """
+        Set the odometer reading to the given value.
+        Reject the change if it attempts to roll the odometer back.
+        """
+        if mileage >= self.odometer_reading:
+            self.odometer_reading = mileage
+        else:
+            print("You cannot roll back an odometer! Mchezo wa Taoni!")
+
+    def increment_odometer(self, miles):
+        """
+        Add the given amount to the odometer reading
+        """
+        self.odometer_reading += miles
+
+
+class Battery:
+    """
+    A simple attempt to model a battery for an electric car
+    """
+    def __init__(self, battery_size=40):
+        """
+        Initialize the battery's attributes
+        """
+        self.battery_size = battery_size
+
+    def describe_battery(self):
+        """
+        Print a statement describing the battery size
+        """
+        print(f"This car has a {self.battery_size}-kWh battery")
+
+    def get_range(self):
+        """
+        Print a statement about the range this battery provides
+        """
+        if self.battery_size == 40:
+            range = 150
+        elif self.battery_size == 65:
+            range = 225
+
+        print(f"This can can go about {range} miles on a full charge.")
+
+class ElectricCar(Car):
+    """
+    Represent aspects of a car, specific to electric vehicles
+    """
+
+    def __init__(self, make, model, year):
+        """
+        Initialize attributes of the parent class
+        Then initialize attributes specific to an electric car
+        """
+        super().__init__(make, model, year)
+        self.battery = Battery()
+    
+
+my_leaf = ElectricCar('nissan', 'leaf', 2024)
+print(my_leaf.get_descriptive_name())
+my_leaf.battery.describe_battery()
+my_leaf.battery.get_range()
+
+Output:
+# >>> my_leaf = ElectricCar("nissan", "leaf", 2024)
+# >>> print(my_leaf.get_descriptive_name())
+# 2024 Nissan Leaf
+# >>> my_leaf.battery.describe_battery()
+# This car has a 40-kWh battery
+# >>> my_leaf.battery.get_range()
+# This can can go about 150 miles on a full charge.
+```
+
+## Importing Classes
+
+As we add more functionality to our classes, our files can get long, even when we use inheritance and composition properly. In keeping with the overall philosophy of Python, we will want to keep our files as uncluttered as possible. 
+
+To help, Python lets us store classes in modules and then import the classes we need into our main program.
+
+### Importing a Single Class
+
+We can have a single module with just the `Car` class stored as `car.py`
+
+```python
+"""A class that can be used to represent a car."""
+
+class Car:
+
+    def __init__(self, make, model, year):
+        """
+        Initialize attributes to describe a car
+        """
+        self.make = make
+        self.model = model
+        self.year = year
+        self.odometer_reading = 0
+
+    def get_descriptive_name(self):
+        """
+        Return a neatly formatted descriptive name
+        """
+        long_name = f"{self.year} {self.make} {self.model}"
+        return long_name.title()
+
+    def read_odometer(self):
+        """
+        Print a statement showing the car's mileage
+        """
+        print(f"This car has {self.odometer_reading} miles on it.")
+
+    def update_odometer(self, mileage):
+        """
+        Set the odometer reading to the given value.
+        Reject the change if it attempts to roll the odometer back.
+        """
+        if mileage >= self.odometer_reading:
+            self.odometer_reading = mileage
+        else:
+            print("You cannot roll back an odometer! Mchezo wa Taoni!")
+
+    def increment_odometer(self, miles):
+        """
+        Add the given amount to the odometer reading
+        """
+        self.odometer_reading += miles
+```
+
+We add a module-level docstring that briefly describes the contents of this module. We should always write a docstring for each module we create. 
+
+Now, we create a separate file `my_car.py` where we will import the `Car` class and then create an instance from that class:
+
+```python
+from car import Car
+
+my_new_car = Car('audi', 'a4', 2024)
+print(my_)

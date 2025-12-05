@@ -1,0 +1,34 @@
+# Ignore python virtual environment folders
+spark_env/
+*_env/
+*_venv/
+venv/
+env/
+.venv/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Ignore Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore Spark metastore and warehouse
+metastore_db/
+spark-warehouse/
+derby.log
+
+# Ignore data files (optional - uncomment if needed)
+# *.csv
+# *.parquet
+# *.json
+# data/
+
+# Ignore IDE settings (optional)
+.vscode/
+.idea/
+*.swp
+*.swo
