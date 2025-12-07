@@ -1297,3 +1297,283 @@ first_up
 3. We can use blank lines to organize code, one between methods, and two between classes.
 
 4. If we need to import a module from the standard library and a module that we wrote, place the import statement for the standard library module first. Then add a blank line and the import statement for the module we wrote. In programs with multiple import statements, this conversion makes it easier to see where the different modules used in the program come from.
+
+
+## Polymorphism
+
+The word `polymorphism` means many forms, and in programming, it refers to methods/functions/operators with the same name that can be executed on many objects or classes.
+
+An example of a Python function that can be used on different objects in the `len()` function:
+
+1. `String`
+
+For strings, `len()` returns the number of characters:
+
+```python
+x = "Hello World!"
+
+print(len(x))
+
+Output:
+12
+```
+
+2. `Tuple`
+
+For tuples, `len()` returns the number of items in the tuple:
+
+```python
+mytuple = ("apple", "banana", "cherry")
+
+print(len(mytuple))
+
+Output:
+3
+```
+
+3. `Dictionary`
+
+For dictionaries, `len()` returns the number of key/value pairs in the dictionary:
+
+```python
+thisdict = {
+  "brand": "Ford",
+  "model": "Mustang",
+  "year": 1964
+}
+
+print(len(thisdict))
+
+Output:
+3
+```
+
+For Polymorphism in Class methods, we can have multiple classes with the same method name.
+
+For example, say we have three classes: `Car`, `Boat`, and `Plane`, and they all have a method called `move()`:
+
+```python
+class Car:
+    def __init__(self, brand, model):
+        self.brand = brand
+        self.model = model
+
+    def move(self):
+        print("Drive!")
+
+class Boat:
+    def __init__(self, brand, model):
+        self.brand = brand
+        self.model = model
+
+    def move(self):
+        print("Sail!")
+
+class Plane:
+    def __init__(self, brand, model):
+        self.brand = brand
+        self.model = model
+
+    def move(self):
+        print("Fly!")
+
+car1 = Car("Ford", "Mustang")       #Create a Car object
+boat1 = Boat("Ibiza", "Touring 20") #Create a Boat object
+plane1 = Plane("Boeing", "747")     #Create a Plane object
+
+for x in (car1, boat1, plane1):
+  x.move()
+
+Output:
+
+Drive!
+Sail!
+Fly!
+```
+
+Because of polymorphism we can execute the same method for all three classes.
+
+When inheriting classes, we can still use polymorphism since the child classes inherits the parent methods, but cana still override them:
+
+```python
+class Vehicle:
+  def __init__(self, brand, model):
+    self.brand = brand
+    self.model = model
+
+  def move(self):
+    print("Move!")
+
+class Car(Vehicle):
+  pass
+
+class Boat(Vehicle):
+  def move(self):
+    print("Sail!")
+
+class Plane(Vehicle):
+  def move(self):
+    print("Fly!")
+
+car1 = Car("Ford", "Mustang")       # Create a Car object
+boat1 = Boat("Ibiza", "Touring 20") # Create a Boat object
+plane1 = Plane("Boeing", "747")     # Create a Plane object
+
+for x in (car1, boat1, plane1):
+  print(x.brand)
+  print(x.model)
+  x.move()
+
+Output:
+
+Ford
+Mustang
+Move!
+Ibiza
+Touring 20
+Sail!
+Boeing
+747
+Fly!
+```
+
+## Encapsulation
+
+Encapsulation is about protecting data inside a class. 
+
+It means keeping data (proprties) and methods together in a class, while controlling how the data can be accessed from outside the class. 
+
+This prevents accidental changes to our data and hides the internal details of how our class works.
+
+We use encapsulation to: Protect data, validate data, ensure flexibility in that, internal implementation can change without affecting external code, and allow for greater control over our data.
+
+### Private Properties
+
+We can use the double underscore __ prefix to make properties private:
+
+```python
+class Person:
+    def __init__(self, name, age):
+        self.name = name
+        self.__age = age
+
+p1 = Person("Me", 25)
+print(p1.name)
+print(p1.__age) # This will cause an error
+
+Output:
+# >>> print(p1.name)
+# Me
+# >>> print(p1.__age)
+# Traceback (most recent call last):
+#   File "<stdin>", line 1, in <module>
+# AttributeError: 'Person' object has no attribute '__age'
+```
+
+To access a private property, we can create a getter method:
+
+```python
+class Person:
+    def __init__(self, name, age):
+        self.name = name
+        self.__age = age
+    
+    def get_age(self):
+        return self.__age
+
+p1 = Person("Me", 25)
+print(p1.name)
+print(p1.get_age())
+
+Output:
+# >>> print(p1.name)
+# Me
+# >>> print(p1.get_age())
+# 25
+```
+
+To modify a pribate property, we can create a setter method. The setter method can also validate the value before setting it:
+
+```python
+class Person:
+    def __init__(self, name, age):
+        self.name = name
+        self.__age = age
+    
+    def get_age(self):
+        return self.__age
+
+    def set_age(self, age):
+        if age > 0:
+            self.__age = age
+        else:
+            print("Age must be positive")
+
+p1 = Person("Me", 25)
+print(p1.get_age())
+
+p1.set_age(26)
+print(p1.get_age())
+
+Output:
+# >>> print(p1.get_age())
+# 25
+# >>> p1.set_age(26)
+# >>> print(p1.get_age())
+# 26
+```
+
+### Private Methods
+
+We can also make methods private using double underscore prefix:
+
+```python
+class Calculator:
+    def __init__(self):
+        self.result = 0
+
+    def __validate(self, num):
+        if not isinstance(num, (int, float)):
+            return False
+        return True
+
+    def add(self, num):
+        if self.__validate(num):
+            self.result += num
+        else:
+            print("Invalid number")
+
+calc = Calculator()
+calc.add(10)
+calc.add(5)
+print(calc.result)
+
+Output:
+15
+```
+
+If we try and call `calc.__validate(5)` in the above example, it would return an error. Private methods cannot be called directly from outside the class. 
+
+### Name Mangling
+
+Name mangling is how Python implements private properties and methods.
+
+When we use double underscores __, Python automatically renames it internally by adding `__ClassName` in front. For example, `__age` becomes `_Person__age`
+
+```python
+class Person:
+    def __init__(self, name, age):
+        self.name = name
+        self.__age = age
+
+p1 = Person("Emil", 30)
+
+# This is how Python mangles the name:
+print(p1._Person__age) # Not recommended!
+
+Output:
+>>> print(p1._Person__age) # Not recommended!
+30
+```
+
+Note: While you can access private properties using the mangled name, it's not recommended. It defeats the purpose of encapsulation.
