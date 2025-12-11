@@ -259,4 +259,144 @@ In our case, it runs the except block since it is not possible to divide 4 by 0.
 
 ### Using Exceptions to Prevent Crashes
 
+Handling errors correctly is important when the program has more work to do after the error occurs, and this happens in programs that prompt users for input. 
 
+Considering the following simple calculator that does only division:
+
+```python
+print("Give me two numbers, and I will divide them.")
+print("Enter 'q' to quit")
+
+while True:
+    first_number = input("\nFirst number: ")
+    if first_number == 'q':
+        break
+    second_number = input("\nSecond number: ")
+    if second_number == 'q':
+        break
+    answer = int(first_number) / int(second_number)
+    print(answer)
+
+Output:
+First number: 2
+
+Second number: 0
+Traceback (most recent call last):
+  File "<stdin>", line 8, in <module>
+ZeroDivisionError: division by zero
+>>> 
+```
+
+In the above program, in case it encounters any error, such as dividing by zero, it would crash.
+
+### The else Block
+
+To make the program more error resistant, we can wrap the line that might produce error in a `try-except` block. 
+
+```python
+print("Give me two numbers, and I will divide them.")
+print("Enter 'q' to quit")
+
+while True:
+    first_number = input("\nFirst number: ")
+    if first_number == 'q':
+        break
+    second_number = input("\nSecond number: ")
+    if second_number == 'q':
+        break
+    try:
+        answer = int(first_number) / int(second_number)
+    except ZeroDivisionError:
+        print("You cannot divide by 0!")
+    else:
+        print(answer)
+
+Output:
+
+First number: 2
+
+Second number: 0
+You cannot divide by 0!
+
+First number: q
+```
+
+### Hnalding the FileNotFoundError Exeption
+
+A common issue when working with files is handling missing files. We can handle such situations using a `try-except` block, too.
+
+```python
+from pathlib import Path
+
+path = Path('alice.txt')
+contents = path.read_text(encoding='utf-8')
+```
+
+The `encoding` argument is needed when the system's default encoding does not match the encoding of the file that is being read. For instance, it is more likely to happen when reading from a file that was not created on our system. 
+
+Python cannot read from a missing file, so it raises an exception:
+
+```python
+>>> contents = path.read_text(encoding='utf-8')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/usr/lib/python3.12/pathlib.py", line 1029, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'alice.txt'
+```
+Here, we get a `FileNotFoundError` which is useful in understanding what kind of exception to use in the `except` block that we will write.
+
+Looking back, we see which line and specific line of code that caused the error. The rest of the traceback shows some code from the libraries that are involved in opening and reading from files. 
+
+To handle the error that is being raised, the `try` block will begin with the line that was identified as problematic in the traceback. 
+
+```python
+from pathlib import Path
+
+path = Path('alice.txt')
+try:
+    contents = path.read_text(encoding='utf-8')
+except FileNotFoundError:
+    print(f"Sorry, the file {path} does not exist.")
+
+Output:
+... 
+Sorry, the file alice.txt does not exist.
+>>> 
+```
+
+### Analyzing Text
+
+We can analyze text files containing entire books. 
+
+For example, we can pull in the text of `Alice in Wonderland` and try to count the number of words in the text. To do this, we will use the string method `split()` which by default splits a string wherever it finds any whitespace:
+
+```python
+from pathlib import Path
+
+path = Path('Alice.txt')
+try:
+    contents = path.read_text(encoding='utf-8')
+except FileNotFoundError:
+    print(f"Sorry, the file {path} does not exist.")
+else:
+    words = contents.split()
+    num_words = len(words)
+    print(f"The file {path} has about {num_words} words.")
+
+Output:
+The file alice.txt has about 29594 words.
+```
+
+### Working with Multiple Files
+
+When working with multiple files, we can move the bulk of our program to a function called `count_words()` for example, which makes it easier to run the analysis.
+
+```python
+from pathlib import Path
+
+def count_words(o)
