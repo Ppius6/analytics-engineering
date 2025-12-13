@@ -399,4 +399,293 @@ When working with multiple files, we can move the bulk of our program to a funct
 ```python
 from pathlib import Path
 
-def count_words(o)
+def count_words(path):
+    """
+    Count the approximate number of words in a file.
+    """
+    try:
+        contents = path.read_text(encoding='utf-8')
+    except FileNotFoundError:
+        print(f"Sorry, the file {path} does not exist.")
+    else:
+        words = contents.split()
+        num_words = len(words)
+        print(f"The file {path} has about {num_words} words.")
+
+filenames = ['alice.txt', 'siddharta.txt', 'moby_dick.txt', 'little_women.txt']
+
+for filename in filenames:
+    path = Path(filename)
+    count_words(path)
+
+Output:
+
+The file alice.txt has about 29594 words.
+Sorry, the file siddharta.txt does not exist.
+The file moby_dick.txt has about 215864 words.
+The file little_women.txt has about 189142 words.
+```
+
+In the program above, the names of the files are stored as simple strings. Each string is then converted to a `Path` object, before the call to `count_words()`. 
+
+If the file is unavailable, we let the user know that the file does not exist using the `try-except` block without the program failing. 
+
+### Failing Silently
+
+To make a program fail silently, we can write a try block as usual, but we can explicitly tell Python to do nothing in the except block. Python has a `pass` statement that tells it to do nothing in a block:
+
+```python
+def count_words(path):
+    """
+    Count the approximate number of words in a file
+    """
+    try:
+        contents = path.read_text(encoding='utf-8')
+    except FileNotFoundError:
+        pass
+    else:
+        words = contents.split()
+        num_words = len(words)
+        print(f"The file {path} has about {num_words} words.")
+```
+
+The only difference between falling silently and the previous code returning a statement is that when a `FileNotFoundError` is raised, the code in the `except` block runs, but nothing happens. No traceback is produced, and there is no output in response to the error that was raised. 
+
+For instance, the output would be:
+
+```
+The file alice.txt has about 29594 words.
+The file moby_dick.txt has about 215864 words.
+The file little_women.txt has about 189142 words.
+```
+
+The pass statement can also act as a placeholder. It is a reminder that we are choosing to do nothing at a specific point in our program's execution and that we might want to do something there later.
+
+### Deciding which Errors to Report
+
+1. If users know which texts are supposed to be analyzed, they might appreciate a message informing them why some texts were not analyzed. 
+
+2. If users expect to see some results but do not know which books are supposed to be analyzed, they might not need to know that some texts were unavailable.
+
+## Storing Data
+
+Most times, we will need to store data, mostly what the users provide in data structures such as lists and dictionaries. When users close a program, we will almost always want to save the information they entered. A simple way to do this involves storing the data using the `json` module. 
+
+The `json` module allows us to conver simple Python data structures into JSON-formatted strings, and then load the data from that file the next time the program runs. We can also use `json` to share data between different Python programs. Even better, the JSON data format is not specific to Python, so we can share data we store in the JSON format wioth other people working with other programming languages. 
+
+### Using `json.dumps()` and `json.loads()`
+
+We can write a short program that stores a set of numbers and another program that reads these numbers back into memory. The first program will use `json.dumps()` to store the set of numbers, and the second program will use `json.loads()`.
+
+The `json.dumps()` function takes one argument: a piece of data that should be converted to the JSON format. The function returns a string, which we can then write to a data file:
+
+```python
+from pathlib import Path
+import json
+
+numbers = [2, 3, 4, 5, 6, 11, 333]
+
+path = Path('numbers.json')
+contents = json.dumps(numbers)
+path.write_text(contents)
+```
+
+Here, we first import the `json` module, and then create a list of numbers to work with. Then we choose a filename in which to store the list of numbers. It is customary to use the file extension `.json` to indicate that the data in the file is stored in the JSON format. 
+
+Next, we use the `json.dumps()` function to generate a string containing the JSON representation of the data we are working with. Once we have this string, we write it to the file using the same `write_text()` method we used earlier.
+
+The program would output our file `numbers.json` with the numbers we specified.
+
+Now, we can use `json.loads()` to read the list back into memory:
+
+```python
+from pathlib import Path
+import json
+
+numbers = [2, 3, 4, 5, 6, 11, 333]
+
+path = Path('numbers.json')
+contents = path.read_text()
+
+numbers = json.loads(contents)
+
+print(numbers)
+```
+
+### Saving and Reading User-Generated Data
+
+We can begin with storing the user's name:
+
+```python
+from pathlib import Path
+import json
+
+username = input("What is your name? ")
+
+path = Path('username.json')
+contents = json.dumps(username)
+path.write_text(contents)
+
+print(f"We will remember you when you come back, {username}!")
+
+Output:
+What is your name? Pius
+We will remember you when you come back, Pius!
+```
+
+Now, let us write a new program that greets a user whose name has already been stored:
+
+```python
+from pathlib import Path
+import json
+
+path = Path('username.json')
+contents = path.read_text()
+username = json.loads(contents)
+
+print(f"Welcome back, {username}!")
+
+Output:
+Welcome back, Pius!
+```
+
+We can combine the above two programs into one file. We want to retrieve the user's username from memory if possible; if not, we will prompt for a username and store it in `username.json` for next time. We could write a `try-except` block here to respond appropriately if `username.json` does not exist, but instead we will use a handy method from the `pathlib` module:
+
+```python
+from pathlib import Path
+import json
+
+path = Path('username.json')
+if path.exists():
+    contents = path.read_text()
+    username = json.loads(contents)
+    print(f"Welcome back, {username}!")
+else:
+    username = input("What is your name? ")
+
+    path = Path('username.json')
+    contents = json.dumps(username)
+    path.write_text(contents)
+
+    print(f"We will remember you when you come back, {username}!")
+
+Output:
+What is your name? Pius
+We will remember you when you come back, Pius!
+```
+
+The `exists()` method returns True if a file or folder exists and False if it does not. Here, we use `path.exists()` to find out if a username has already been stored. If it exists, we load the username and print a personalized greeting to the user.
+
+If the file does not exist, we prompt for a username and store the value that the user enters. We also print the familiar message that we will remember them when they come back.
+
+### Refactoring
+
+`Refactoring` involves breaking up our code into a series of functions that have specific jobs, which is when we recognize that we can improve the code. 
+
+It makes our code cleaner, easier to understand, and easier to expand.
+
+For example:
+
+```python
+from pathlib import Path
+import json
+
+def greet_user():
+    """
+    Greet the user by name.
+    """
+    path = Path('username.json')
+
+    if path.exists():
+        contents = path.read_text()
+        username = json.loads(contents)
+        print(f"Welcome back, {username}!")
+    else:
+        username = input("What is your name? ")
+        path = Path('username.json')
+        contents = json.dumps(username)
+        path.write_text(contents)
+        print(f"We will remember you when you come back, {username}!")
+
+greet_user()
+```
+
+We can further refactor the code, so that it is not doing so many different tasks, for example, by moving the code for retrieving a stored username to a separate function:
+
+```python
+from pathlib import Path
+import json
+
+def get_stored_username(path):
+    """
+    Get stored username if available
+    """
+    if path.exists():
+        contents = path.read_text()
+        username = json.loads(contents)
+        return username
+    else:
+        return None
+
+def greet_user():
+    """
+    Greet the user by name.
+    """
+    path = Path('username.json')
+
+    if username:
+        print(f"Welcome back, {username}!")
+    else:
+        username = input("What is your name? ")
+        path = Path('username.json')
+        contents = json.dumps(username)
+        path.write_text(contents)
+        print(f"We will remember you when you come back, {username}!")
+
+greet_user()
+```
+
+Our new function `get_stored_username` retrieves a stored username and returns the username if it finds one. If it does not exist, the function returns `None`, a good practice as a function should either return the value we are expecting or it should return `None`.
+
+We should factor one more block of code out of `greet_user()`, such that if the username does not exist, we should move the coe that prompts for a new username to a function dedicated to that purpose:
+
+```python
+from pathlib import Path
+import json
+
+def get_stored_username(path):
+    """
+    Get stored username if available
+    """
+    if path.exists():
+        contents = path.read_text()
+        username = json.loads(contents)
+        return username
+    else:
+        return None
+
+def get_new_username(path):
+    """
+    Prompt for a new username
+    """
+    username = input("What is your name? ")
+    path = Path('username.json')
+    contents = json.dumps(username)
+    path.write_text(contents)
+    return username
+
+def greet_user():
+    """
+    Greet the user by name.
+    """
+    path = Path('username.json')
+
+    username = get_stored_username(path)
+    if username:
+        print(f"Welcome back, {username}!")
+    else:
+        username = get_new_username(path)
+        print(f"We will remember you when you come back, {username}!")
+
+greet_user()
+```
