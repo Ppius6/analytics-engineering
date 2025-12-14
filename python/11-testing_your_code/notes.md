@@ -1,0 +1,123 @@
+# Testing your Code
+
+When we write a function or a class, we can also write tests for that code. Testing proves that our code works as it is supposed to in response to all kinds of input it is designed to receive.
+
+We will learn how to use `pytest` to test our code. It is a collection of tools that will help us write our first tests quickly and simply while supporting our tests as they grow in complexity along with our projects.
+
+## Installing pytest with pip
+
+Most Python developers depend on `third-party packages`, which are developed outside the core Python language. 
+
+However, we should not blindly trust every third-party package, but we also should not be put off by the fact that a lot of important functionality is implemnented through such packages.
+
+`pip` is used to install third-party packages. This tool is regularly updated to address potential security issues. 
+
+```python
+python -m pip install --upgrade pip
+```
+
+`python -m pip` tells Python to run the module pip. `install --upgrade` tells pip to update a package that has already been installed. `pip`, the last part, specifies which third-party package should be updated.
+
+We can always use `python -m pip install --upgrade package_name` to update any third-party package installed on our system.
+
+`pytest` can be installed using `python -m pip install --user pytest`. Here we use the `--user` flag which tells Python to install this package for the current user only. 
+
+## Testing a Function
+
+We can test the following code:
+
+```python
+# name_function.py
+def get_formatted_name(first, last):
+    """
+    Generate a neatly formatted full name
+    """
+    full_name = f"{first} {last}"
+    return full_name.title()
+```
+
+To check our function works, we can make a program that uses this function.
+
+```python
+from name_function import get_formatted_name
+
+print("Enter 'q' at any time to quit. ")
+while True:
+    first = input("\nPlease give me a first name: ")
+    if first == 'q':
+        break
+    last = input("\nPlease give me a last name: ")
+    if last == 'q':
+        break
+
+    formatted_name = get_formatted_name(first, last)
+    print(f"\tNeatly formatted name: {formatted_name}.")
+
+Output:
+Enter 'q' at any time to quit. 
+
+Please give me a first name: I
+Please give me a last name: You
+        Neatly formatted name: I You.
+
+Please give me a first name: I
+Please give me a last name: Me
+        Neatly formatted name: I Me.
+
+Please give me a first name: q
+```
+
+The result work as expected. 
+
+However, assuming we modify our program's functionality and add a middle name, we would want to make sure that we do not break the way the function handles names that have only a first and last name.
+
+`pytest` provides an automated way of testing our function, and the result will give us the confidence that the function will work when given the kinds of names we have written tests for.
+
+### Unit Tests and Test Cases
+
+One of the simplest kinds of test is a `unit test`. It verifies that one specific aspect of a function's behavior is correct. A `test case` is a collection of unit tests that together prove that a function behaves as it is supposed to, within the full range of situations you expect it to handle.
+
+A good test case considers all the possible kinds of input a function could receive and includes tests to represent each of these situations. A test case with full coverage includes a full range of unit tests covering all the possible ways you can use a function.
+
+### A Passing Test
+
+With `pytest`, writing our first unit test is pretty straightforward. We will write a single test function. The test function will call the function we are testing, and make an assertion about the value that is returned. If our assertion is correct, the test will pass; if the assertion is incorrect, the test will fail.
+
+```python
+# test_name_function.py
+from name_function import get_formatted_name
+
+def test_first_last_name():
+    """
+    Do names like 'Janis Joplin' work?
+    """
+    formatted_name = get_formatted_name('janis', 'joplin')
+    assert formatted_name == 'Janis Joplin'
+```
+
+When defining the test function, we need to start with the word `test`, followed by an underscore. Any function that starts with `test_` will be discovered by `pytest`, and will be run as part of the testing process.
+
+Also, test names should be longer and more descriptive than a typical function name. We will never call the function ourselves; `pytest` will find the function and run it for us. 
+
+The `assert` function is a claim about a condition. Here, we are claiming that the value of `formatted_name` should be `'Janis Joplin'`
+
+### Running a Test
+
+When running this test, we will have `pytest` run the test file for us. To do this, we open a terminal window and navigate to the folder with the test file and enter the command `pytest`. The result should be as shown below.
+
+```python
+piusm@pius-home:~/dev-projects/analytics-engineering/python/11-testing_your_code$ pytest
+======================== test session starts ================================================
+platform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0
+rootdir: /home/piusm/dev-projects/analytics-engineering/python/11-testing_your_code
+collected 1 item   
+
+test_name_function.py .                                                                 [100%]
+========================= 1 passed in 0.01s =================================================
+```
+
+The single dot after the name of the file tells us that a single test passed, and the 100% makes it clear that all of the tests have been run. 
+
+The output indicates that the function `get_formatted_name()` will always work for names that have a first and last name, unless we modify the function. Upon modifying the main function, we can run the test again.
+
+### A Failing Test
