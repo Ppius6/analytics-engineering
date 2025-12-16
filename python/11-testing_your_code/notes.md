@@ -241,3 +241,228 @@ The two dots indicate that the two tests passed, which is also clear from the la
 
 ## Testing a Class
 
+Here, we expand writing tests for classes.
+
+### A Variety of Assertions
+
+So far, we have worked with just one kind of assertion: a claim that a string has a specific value. 
+
+When writing a test, we can make any claim that can be expressed as a conditional statement. If the condition is `True` as expected, our assumption about how that part of our program behaves would be confirmed; we can be confident that no errors exist. 
+
+If the condition we assume is `True` is actually `False`, the test will fail and we will know there is an issue to resolve. 
+
+The following table shows the commonly used assertion statements in tests.
+
+| Assertion                    | Claim                                       |
+|------------------------------|---------------------------------------------|
+| `assert x == y`              | Assert that two values are equal            |
+| `assert x != y`              | Assert that two values are not equal        |
+| `assert x`                   | Assert that x evaluates to True             |
+| `assert x > y`               | Assert that x is greater than y             |
+| `assert x < y`               | Assert that x is less than y                |
+| `assert x >= y`              | Assert that x is greater than or equal to y |
+| `assert x <= y`              | Assert that x is less than or equal to y    |
+| `assert not x`               | Assert that x evaluates to False            |
+| `assert element in list`     | Assert that an element is in a list         |
+| `assert element not in list` | Assert that an element is not in a list     |
+
+### A Class to Test
+
+Testing a class is similar to testing a function since much of the work involves testing the behavior of the methods in the class. However, there are a few differences. 
+
+Consider a class that helps administer anonymous surveys:
+
+```python
+class AnonymousSurvey:
+    """
+    Collect anonymous answers to a survey question
+    """
+
+    def __init__(self, question):
+        """
+        Store a question, and prepare to store responses
+        """
+        self.question = question
+        self.responses = []
+
+    def show_question(self):
+        """
+        Show the survey question
+        """
+        print(self.question)
+
+    def store_response(self, new_response):
+        """
+        Store a single response to the survey
+        """
+        self.responses.append(new_response)
+
+    def show_results(self):
+        """
+        Show all the responses that have been given
+        """
+        print("Survey results: ")
+        for response in self.responses:
+            print(f"- {response}")
+```
+
+To create an instance from this class, all we have to provide is a question. Once we have an instance representing a particular survey, we display the question with `show_question()`, store a response using `store_response()` and show results with `show_results()`.
+
+```python
+from survey import AnonymousSurvey
+
+# Define a question, and make a survey
+question = "What language did you first learn to speak?"
+language_survey = AnonymousSurvey(question)
+
+# Show the question, and store responses to the question
+language_survey.show_question()
+print("Enter 'q' at any time to quit. \n")
+
+while True:
+    response = input("Language: ")
+    if response == 'q':
+        break
+    language_survey.store_response(response)
+
+# Show the survey results
+print("\n Thank you to everyone who participated in the survey!")
+language_survey.show_results()
+```
+
+Upon running the program above, we get the results:
+
+```
+What language did you first learn to speak?
+Enter 'q' at any time to quit. 
+
+Language: English
+Language: Swahili
+Language: Kimeru
+Language: q
+
+ Thank you to everyone who participated in the survey!
+Survey results: 
+- English
+- Swahili
+- Kimeru
+```
+
+If we sought to improve our current program, we could allow for more responses by writing a method to list only unique responses and to report how many times each response was given, or we could even write another class to manage non-anonymous surveys.
+
+Implementing such changes would risk affecting the current behavior of the class. It is possible that while trying to allow each user to enter multiple responses, we could accidentally change how single responses are handled. 
+
+To ensure we do not break existing behavior as we develop this module, we can write tests for the class.
+
+### Testing the AnonymousSurvey class
+
+The following test verifies a single response to the survey question:
+
+```python
+from survey import AnonymousSurvey
+
+def test_store_single_response():
+    """Test that a single response is stored properly."""
+    question = "What language did you first learn to speak?"
+    language_survey = AnonymousSurvey(question)
+    language_survey.store_response('English')
+    assert 'English' in language_survey.responses
+```
+
+After running our test, we get the following results:
+
+```python
+piusm@pius-home:~/dev-projects/analytics-engineering/python/11-testing_your_code/practice$ pytest
+================================= test session starts ===================================
+platform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0
+rootdir: /home/piusm/dev-projects/analytics-engineering/python/11-testing_your_code/practice
+collected 1 item
+                                                                                                                                                              
+
+test_survey.py .                                                                      [100%]
+=================================== 1 passed in 0.01s ====================================
+```
+
+The test passed and we can then proceed to test if the function can store more than one response. 
+
+```python
+from survey import AnonymousSurvey
+
+def test_store_single_response():
+    """Test that a single response is stored properly."""
+    question = "What language did you first learn to speak?"
+    language_survey = AnonymousSurvey(question)
+    language_survey.store_response('English')
+    assert 'English' in language_survey.responses
+
+def test_store_three_responses():
+    """Test that three individual responses are stored properly."""
+    question = "What language did you first learn to speak?"
+    language_survey = AnonymousSurvey(question)
+    responses = ['Ennglish', 'Swahili', 'Kimeru']
+    for response in responses:
+        language_survey.store_response(response)
+
+    for response in responses:
+        assert response in language_survey.responses
+```
+
+When we run the test file again, both tests pass:
+
+```python
+piusm@pius-home:~/dev-projects/analytics-engineering/python/11-testing_your_code/practice$ pytest
+================================== test session starts ===================================
+platform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0
+rootdir: /home/piusm/dev-projects/analytics-engineering/python/11-testing_your_code/practice
+collected 2 items        
+
+test_survey.py .                                                                   [100%]
+
+==================================== 2 passed in 0.01s ====================================
+piusm@pius-home:~/dev-projects/analytics-engineering/python/11-testing_your_code/practice$ 
+```
+
+However, as these tests are repetitive, we can use another feature of `pytest` to make them more efficient.
+
+### Using Fixtures
+
+While we created a new instance of `AnonymousSurvey` in each test function, in a real-world project, this would be problematic.
+
+In testing, a `fixture` helps set up a test environment. Often this means creating a resource that is used by more than one test. We create a fixture in `pytest` by writing a function with the decorator `@pytest.fixture`. A `decorator` is a directive placed just before a function definition; Python applies this directive to the function before it runs, to alter how the function code behaves. 
+
+```python
+import pytest
+from survey import AnonymousSurvey
+
+@pytest.fixture
+def language_survey():
+    """
+    A survey that will be available to all test functions
+    """
+    question = "What language did you first learn to speak?"
+    language_survey = AnonymousSurvey(question)
+    return language_survey
+
+def test_store_single_response(language_survey):
+    """Test that a single response is stored properly."""
+    language_survey.store_response("English")
+    assert "English" in language_survey.responses
+
+
+def test_store_three_responses(language_survey):
+    """Test that three individual responses are stored properly."""
+    responses = ["Ennglish", "Swahili", "Kimeru"]
+    for response in responses:
+        language_survey.store_response(response)
+
+    for response in responses:
+        assert response in language_survey.responses
+```
+
+We now add a decorator that is defined in `pytest`. We apply the `@pytest.fixture` decorator to the new function `language_survey()` which builds an `AnonymousSurvey` object and returns the new survey.
+
+The updated test functions now have the parameter `language_survey`. When a parameter in a test function matches the name of a function with the `@pytest.fixture` decorator, the fixture will be run automatically and the return value will be passed to the test function. 
+
+In this example, the function `language_survey()` supplies both `test_store_single_response()` and `test_store_three_responses()` with a `language_survey` instance. 
+
+Upon running the test file again, the tests will still pass.
