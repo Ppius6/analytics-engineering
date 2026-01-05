@@ -424,3 +424,315 @@ def _check_events(self):
 ```
 
 Inside `_check_events()` we add an elif block to the event loop, to respond when Pygame detects a `KEYDOWN` event. We check whether the key pressed, event.key, is the right arrow key. The right arrow key is represented by `pygame.K_RIGHT`. If the right arrow key was pressed, we move the ship to the right by increasing the value of `self.ship.rect.x` by 1.
+
+### Allowing Continous Movement
+
+Now, when the player holds down the right arrow key, we want the ship to continue moving right until the player releases the key. We will have the game detect a `pygame.KEYUP` event so we will know when the right arrow key is released; then we will use the `KEYDOWN` AND `KEYUP` events together with a flag called `moving_right` to implement continous motion. 
+
+When the `moving_right` flag is `False`, the ship will be motionless. When the player presses the right arrow key, we will set the flag to `True`, and when the player releases the key, we will set the flag to `False` again.
+
+The `Ship` class controls all attributes of the ship, so we will give it an attribute called `moving_right` and an `update()` method to check the status of the `moving_right` flag. The `update()` method will change the position of the ship if the flag is set to `True`. This method will be called once on each pass through the while loop to update the position of the ship.
+
+```python
+class Ship:
+    """A class to manage the ship."""
+
+    def __init__(self, ai_game):
+        """
+        Initialize the ship and set its starting position
+        """
+        self.screen = ai_game.screen
+        self.screen_rect = ai_game.screen.get_rect()
+
+        # Load the ship image and get its rect
+        self.image = pygame.image.load("images/ship.bmp")
+        self.rect = self.image.get_rect()
+
+        # Start each new ship at the bottom center of the screen
+        self.rect.midbottom = self.screen_rect.midbottom
+
+        # Movement flag; start with a ship that is not moving
+        self.moving_right = False
+
+    def update(self):
+        """
+        Update the ship's position based on the movement flag
+        """
+        if self.moving_right:
+            self.rect.x += 1
+
+    def blitme(self):
+        """
+        Draw the ship at its current location
+        """
+        self.screen.blit(self.image, self.rect)
+```
+
+The `update()` method will be called from outside the class, so it is not considered a helper method.
+
+Now, we modify `_check_events()` so that `moving_right` is set to `True` when the right arrow key is pressed and `False` when the key is released:
+
+```python
+
+    def _check_events(self):
+        """
+        Respond to keypresses and mouse events.
+        """
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.type == pygame.K_RIGHT:
+                    # Move the ship to the right
+                    self.ship.moving_right = True
+            elif event.type == pygame.KEYUP:
+                if event.type == pygame.K_RIGHT:
+                    self.ship.moving_right = False
+```
+
+Next, we set the while loop in `run_game()` such that it calls the ship's `update()` method on each pass through the loop:
+
+```python
+
+    def run_game(self):
+        """
+        Start the main loop for the game
+        """
+        while True:
+            self._check_events()
+            self.ship.update()
+            self._update_screen()
+            self.clock.tick(60)
+
+```
+
+The ship's position will be updated after we have checked for keyboard events and before we update the screen. This allows the ship's position to be updated in response to player input and ensures the updated position will be used when drawing the ship to the screen.
+
+### Moving Both Left and Right
+
+Now that the ship can move continuously to the right, adding movement to the left is straightforward; we modify the `Ship` class and the `_check_events()` method.
+
+```python
+class Ship:
+    """A class to manage the ship."""
+
+    def __init__(self, ai_game):
+        """
+        Initialize the ship and set its starting position
+        """
+        self.screen = ai_game.screen
+        self.screen_rect = ai_game.screen.get_rect()
+
+        # Load the ship image and get its rect
+        self.image = pygame.image.load("images/ship.bmp")
+        self.rect = self.image.get_rect()
+
+        # Start each new ship at the bottom center of the screen
+        self.rect.midbottom = self.screen_rect.midbottom
+
+        # Movement flag; start with a ship that is not moving
+        self.moving_right = False
+        self.moving_left = False
+
+    def update(self):
+        """
+        Update the ship's position based on the movement flag
+        """
+        if self.moving_right:
+            self.rect.x += 1
+        if self.moving_left:
+            self.rect.x -= 1
+```
+
+In `__init__()` method, we add a `self.moving_left` flag. In `update()` we use two separate if blocks which makes movements more accurate when the player might momentarily hold down both keys when changing directions.
+
+```python
+    def _check_events(self):
+        """
+        Respond to keypresses and mouse events.
+        """
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RIGHT:
+                    # Move the ship to the right
+                    self.ship.moving_right = True
+                elif event.key == pygame.K_LEFT:
+                    self.ship.moving_left = True
+
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_RIGHT:
+                    self.ship.moving_right = False
+                if event.key == pygame.K_LEFT:
+                    self.ship.moving_left = False
+```
+
+### Adjusting the Ship's Speed
+
+Currently, the ship moves one pixel per cycle through the while loop, but we can take finer control of the ship's speed by adding a `ship_speed` attribute to the `Settings` class. 
+
+```python
+class Settings:
+    """
+    A class to store all settings for Alien Invasion
+    """
+
+    def __init__(self):
+        """
+        Initialize the game's settings
+        """
+        # Screen settings
+        self.screen_width = 1200
+        self.screen_height = 800
+        self.bg_color = (0, 0, 255)  # blue background
+        self.ship_speed = 1.5
+```
+
+Now, when the ship moves, its position is adjusted by 1.5 pixels, rather than 1 pixel on each pass through the loop.
+
+We are using a float for the speed setting to give us finer control of the ship's speed when we increase the tempo of the game later on. However, `rect` attributes such as x store only integer values, so we need to make some modifications to the `Ship`:
+
+```python
+class Ship:
+    """A class to manage the ship."""
+
+    def __init__(self, ai_game):
+        """
+        Initialize the ship and set its starting position
+        """
+        self.screen = ai_game.screen
+        self.settings = ai_game.settings
+        self.screen_rect = ai_game.screen.get_rect()
+
+        # Load the ship image and get its rect
+        self.image = pygame.image.load("images/ship.bmp")
+        self.rect = self.image.get_rect()
+
+        # Start each new ship at the bottom center of the screen
+        self.rect.midbottom = self.screen_rect.midbottom
+
+        # Store a float for the ship's exact horizontal position
+        self.x = float(self.rect.x)
+
+        # Movement flag; start with a ship that is not moving
+        self.moving_right = False
+        self.moving_left = False
+
+    def update(self):
+        """
+        Update the ship's position based on the movement flag
+        """
+        # Update the ship's x value, not the rect
+        if self.moving_right:
+            self.x += self.settings.ship_speed
+
+        if self.moving_left:
+            self.x -= self.settings.ship_speed
+
+        # Update rect objects from self.x
+        self.rect.x = self.x
+
+    def blitme(self):
+        """
+        Draw the ship at its current location
+        """
+        self.screen.blit(self.image, self.rect)
+```
+
+### Limiting the Ship's Range
+
+The ship may disappear off either edge of the screen if you hold hold down an arrow key long enough. We can correct this so the ship stops moving when it reaches the screen's edge in the `update()` method:
+
+```python
+    def update(self):
+        """
+        Update the ship's position based on the movement flag
+        """
+        # Update the ship's x value, not the rect
+        if self.moving_right and self.rect.right < self.screen_rect.right:
+            self.x += self.settings.ship_speed
+
+        if self.moving_left and self.rect.left > 0:
+            self.x -= self.settings.ship_speed
+
+        # Update rect objects from self.x
+        self.rect.x = self.x
+```
+
+### Refactoring `_check_events()`
+
+The `_check_events()` method will increase in length as we continue to develop the game, so we break it into two separate methods; one that handles `KEYDOWN` events and another that handles `KEYUP` events:
+
+```python
+    def _check_events(self):
+        """
+        Respond to keypresses and mouse events.
+        """
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+               self._check_keydown_events(event)
+
+            elif event.type == pygame.KEYUP:
+                self._check_keyup_events(event)
+
+    def _check_keydown_events(self, event):
+        """Respond to keypresses."""
+        if event.key == pygame.K_RIGHT:
+            self.ship.moving_right = True
+        elif event.key == pygame.K_LEFT:
+            self.ship.moving_left = True
+
+    def _check_keyup_events(self, event):
+        """Respond to key releases."""
+        if event.key == pygame.K_RIGHT:
+            self.ship.moving_right = False
+        if event.key == pygame.K_LEFT:
+            self.ship.moving_left = False
+```
+
+### Pressing Q to Quit
+
+To end our game, we can add the following in `alient_invasion.py`
+
+```python
+    def _check_keydown_events(self, event):
+        """Respond to keypresses."""
+        if event.key == pygame.K_RIGHT:
+            self.ship.moving_right = True
+        elif event.key == pygame.K_LEFT:
+            self.ship.moving_left = True
+        elif event.key == pygame.K_q:
+            sys.exit()
+```
+
+In ` _check_keydown_events()`, we add a new block that ends the game when the player presses Q. Now, when testing, we can press Q to close the game instead of using our cursor to close the window.
+
+### Running the Game in Fullscreen Mode
+
+We can use the fullscreen mode which would allow for better engagement by modifying the `__init__()` method:
+
+```python
+
+    def __init__(self):
+        """
+        Initialize the game, and create game resources
+        """
+        pygame.init()
+
+        self.clock = pygame.time.Clock()
+        self.settings = Settings()
+
+        self.screen = pygame.display.set_mode(
+            (0, 0), pygame.FULLSCREEN
+        )
+        self.settings.screen_width = self.screen.get_rect().width
+        self.settings.screen_height = self.screen.get_rect().height
+        pygame.display.set_caption("Alien Invasion")
+
+        self.ship = Ship(self)
+```
+
+## Shooting Bullets
