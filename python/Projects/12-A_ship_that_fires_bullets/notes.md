@@ -736,3 +736,289 @@ We can use the fullscreen mode which would allow for better engagement by modify
 ```
 
 ## Shooting Bullets
+
+We can add the ability to shoot bullets; code that is represented by a small rectangle when the player presses the spacebar. Bullets will travel straight up the screen until they disappear off the top of the screen.
+
+```python
+In `settings.py`;
+
+    def __init__(self):
+        """
+        Initialize the game's settings
+        """
+        # Screen settings
+        self.screen_width = 1200
+        self.screen_height = 800
+        self.bg_color = (0, 0, 255)  # blue background
+        self.ship_speed = 1.5
+        self.bullet_speed = 2.0
+        self.bullet_width = 3
+        self.bullet_height = 15
+        self.bullet_color = (60, 60, 60)
+
+```
+
+These settomgs create dark gray bullets with a width of 3 pixels and a height of 15 pixels. The bullets will travel faster that the ship.
+
+### Creating the Bullet Class
+
+We then add a new `Bullet` class;
+
+```python
+
+import pygame
+from pygame.sprite import Sprite
+
+class Bullet(Sprite):
+    """A class to manage bullets fired from the ship."""
+
+    def __init__(self, ai_game):
+        """Create a bullet object at the ship's current position."""
+        super().__init__()
+        self.screen = ai_game.screen
+        self.settings = ai_game.settings
+        self.color = self.settings.bullet_color
+
+        # Create a bullet rect at (0, 0) and then set the correct position
+        self.rect = pygame.Rect(0, 0, self.settings.bullet_width, self.settings.bullet_height)
+        self.rect.midtop = ai_game.ship.rect.midtop
+
+        # Store the bullet's position as a float
+        self.y = float(self.rect.y)
+
+```
+
+The `Bullet` class inherits from `Sprite`, which we import from the `pygame.sprite` module. When we use sprites, we can group related elements in our game and act on all the grouped elements at once. To create a bullet instance, __init__() needs the current instance of `AlientInvasion` and we call `super()` to inherit properly from `Sprite`. We also set attributes for the screen and settings objects, and for the bullet's color.
+
+We then specify the position using the rect attribute and specify the bullet's midtop attribute to match the ship's midtop attribute. 
+
+```python
+
+import pygame
+from pygame.sprite import Sprite
+
+class Bullet(Sprite):
+    """A class to manage bullets fired from the ship."""
+
+    def __init__(self, ai_game):
+        """Create a bullet object at the ship's current position."""
+        super().__init__()
+        self.screen = ai_game.screen
+        self.settings = ai_game.settings
+        self.color = self.settings.bullet_color
+
+        # Create a bullet rect at (0, 0) and then set the correct position
+        self.rect = pygame.Rect(0, 0, self.settings.bullet_width, self.settings.bullet_height)
+        self.rect.midtop = ai_game.ship.rect.midtop
+
+        # Store the bullet's position as a float
+        self.y = float(self.rect.y)
+
+    def update(self):
+        """Move the bullet up the screen."""
+        # Update the exact position of the bullet
+        self.y -= self.settings.bullet_speed
+        # Update the rect position
+        self.rect.y = self.y
+
+    def draw_bullet(self):
+        """Draw the bullet to the screen."""
+        pygame.draw.rect(self.screen, self.color, self.rect)
+
+```
+
+The `update()` method manages the bullet's position. When a bullet is fired, it moves up the screen, which corresponds to a decreasing y-coordinate value. To update the position, we subtract the amount stored in `settings.bullet_speedf` from `self.y`. We then use the value of `self.y` to set the value of `self.rect.y`
+
+When we want to draw a bullet, we call `draw_bullet()`. The `draw.rect()` function fills the part of the screen defined by the bullet's `rect` with the color stored in `self.color`
+
+
+### Storing Bullets in a Group
+
+We update the code to fire a bullet each time a player presses the spacebar. We will create a group in `AlienInvasion` to store all the active bullets so we can manage the bullets that have already been fired. The group will be an instance of the `pygame.sprite.Group` class, which behaves like a list with some extra functionality that is helpful when building games. We will use this group to draw bullets to the screen one each pass through the main loop and to update each bullet's position.
+
+In `alien_invasion.py`, we add;
+
+```python
+
+from bullet import Bullet #
+
+---
+
+    def __init__(self):
+        """
+        Initialize the game, and create game resources
+        """
+        ---
+        self.ship = Ship(self)
+        self.bullets = pygame.sprite.Group() #
+
+    def run_game(self):
+        """
+        Start the main loop for the game
+        """
+        while True:
+            self._check_events()
+            self.ship.update()
+            self.bullets.update() #
+            self._update_screen()
+            self.clock.tick(60)
+
+```
+
+When we call `update()` on a group, the group automatically calls `update()` for each sprite in the group. The line `self.bullets.update()` calls `bullet.update()` for each bullet we place in the group `bullets`.
+
+### Firing Bullets
+
+In `AlienInvasion`, we need to modify `_check_keydown_events()` to fire a bullet when the player presses the spacebar. We do not need to change `_check_keyup_events()` because nothing happens when the spacebar is released. We also need to modify `_update_screen()` to make sure each bullet is drawn to the screen before we call `flip()`. 
+
+We add a new method `_fire_bullet()` to handle the work of firing a bullet:
+
+```python
+
+    def _check_keydown_events(self, event):
+        """Respond to keypresses."""
+        if event.key == pygame.K_RIGHT:
+            self.ship.moving_right = True
+        elif event.key == pygame.K_LEFT:
+            self.ship.moving_left = True
+        elif event.key == pygame.K_q:
+            sys.exit()
+        elif event.key == pygame.K_SPACE:
+            self._fire_bullet()
+
+    def _check_keyup_events(self, event):
+        """Respond to key releases."""
+        if event.key == pygame.K_RIGHT:
+            self.ship.moving_right = False
+        if event.key == pygame.K_LEFT:
+            self.ship.moving_left = False
+    
+    def _fire_bullet(self):
+        """Create a new bullet and add it to the bullets group."""
+        new_bullet = Bullet(self)
+        self.bullets.add(new_bullet)
+
+    def _update_screen(self):
+        """
+        Update images on the screen, and flip to the new screen
+        """
+        self.screen.fill(self.settings.bg_color)
+        for bullet in self.bullets.sprites():
+            bullet.draw_bullet()
+        self.ship.blitme()
+
+        # Make the most recently drawn screen visible
+        pygame.display.flip()
+
+```
+
+### Deleting Old Bullets
+
+At the moment, the bullets disappear when they reach the top, but only because Pygame cannot draw them above the top of the screen. The bullets actually continue to exist; their y-coordinate values just grow increasingly negative. This is a problem because they continue to consume memory and processing power.
+
+We need to get rid of these old bullets, or the game will slow down from doing so much unnecessary work. To do this, we need to detect when the bottom value of a bullet's rect has a value of 0, which indicates the bullet has passed off the top of the screen:
+
+```python
+
+
+    def run_game(self):
+        """
+        Start the main loop for the game
+        """
+        while True:
+            self._check_events()
+            self.ship.update()
+            self.bullets.update()
+
+            # Get rid of bullets that have disappeared
+            for bullet in self.bullets.copy():
+                if bullet.rect.bottom <= 0:
+                    self.bullets.remove(bullet)
+            print(len(self.bullets))
+
+            self._update_screen()
+            self.clock.tick(60)
+
+```
+
+### Limiting the Number of Bullets
+
+Many shooting games limit the number of bullets a player can have on the screen at one time; doing so encourages players to shoot accurately. We will do the same for `AlienInvasion`
+
+We first store the number of bullets allowed in `settings.py`
+
+```python
+
+class Settings:
+    """
+    A class to store all settings for Alien Invasion
+    """
+
+    def __init__(self):
+        """
+        Initialize the game's settings
+        """
+        # Screen settings
+        self.screen_width = 1200
+        self.screen_height = 800
+        self.bg_color = (0, 0, 255)  # blue background
+        self.ship_speed = 1.5
+        self.bullet_speed = 2.0
+        self.bullet_width = 3
+        self.bullet_height = 15
+        self.bullet_color = (60, 60, 60)
+        self.bullets_allowed = 3
+
+```
+
+We then use this setting in AlienInvasion to check how many bullets exist before creating a new bullet in `_fire_bullet()`:
+
+```python
+
+    def _fire_bullet(self):
+        """Create a new bullet and add it to the bullets group."""
+        if len(self.bullets) < self.settings.bullets_allowed:
+            new_bullet = Bullet(self)
+            self.bullets.add(new_bullet)
+
+```
+
+When the player presses the spacebar, we check the length of bullets. If `len(self.bullets)` is less than three, we create a new bullet. But if three bullets are already active, nothing happens when the spacebar is pressed. When we run the game now, we should only be able to fire bullets in groups of three.
+
+### Creating the `_update_bullets()` Method
+
+To keep our code more organized, we can move the bullet management code and add it to a separate method. We will create a new method called `_update_bullets()` and add it just before `_update_screen()`:
+
+```python
+
+    def _update_bullets(self):
+        """Update position of bullets and get rid of old bullets."""
+        # Update bullet positions
+        self.bullets.update()
+
+        # Get rid of bullets that have dissapeared
+        for bullet in self.bullets.copy:
+            if bullet.rect.bottom <= 0:
+                self.bullets.remove(bullet)
+
+```
+
+The code for `_update_bullets()` is cut and pasted from `run_game()`; all we have done here is clarify the comments.
+
+The while loop in `run_game()` now looks simple:
+
+```python
+
+    def run_game(self):
+        """
+        Start the main loop for the game
+        """
+        while True:
+            self._check_events()
+            self.ship.update()
+            self.bullets.update()
+            self._update_bullets()
+            self._update_screen()
+            self.clock.tick(60)
+            
+```
