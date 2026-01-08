@@ -1,6 +1,3 @@
-# Exclude python files
-*.py
-
 # Exclude virtual environment directories
 venv/
 env/
