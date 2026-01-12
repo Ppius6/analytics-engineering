@@ -121,3 +121,174 @@ ax.tick_params(labelsize=14)
 
 plt.show()
 ```
+
+### Plotting and styling Individual points with `scatter()`
+
+If we want to plot a single point, we can pass the single x and y values to the point to `scatter()`
+
+```python
+import matplotlib.pyplot as plt
+
+plt.style.use('seaborn-v0_8')
+fig, ax = plt.subplots()
+ax.scatter(2, 4)
+
+plt.show()
+```
+
+Adding more styling:
+
+```python
+import matplotlib.pyplot as plt
+
+plt.style.use('seaborn-v0_8')
+fig, ax = plt.subplots()
+ax.scatter(2, 4, s=200)
+
+ax.set_title("Square Numbers", fontsize=24)
+ax.set_xlabel("Value", fontsize=14)
+ax.set_ylabel("Square of Value", fontsize=14)
+
+ax.tick_params(labelsize=14)
+
+plt.show()
+```
+
+The argument `s` in `ax.scatter(2, 4, s=200)` is used to set the size of the dots used to draw the graph. 
+
+# Plotting a Series of Points with `scatter()`
+
+```python
+import matplotlib.pyplot as plt
+
+x_values = [1, 2, 3, 4, 5]
+y_values = [1, 4, 9, 16, 25]
+
+plt.style.use("seaborn-v0_8")
+fig, ax = plt.subplots()
+ax.scatter(x_values, y_values, s=100)
+
+ax.set_title("Square Numbers", fontsize=24)
+ax.set_xlabel("Value", fontsize=14)
+ax.set_ylabel("Square of Value", fontsize=14)
+
+ax.tick_params(labelsize=14)
+
+plt.show()
+```
+
+### Calculating Data Automatically
+
+Writing lists by hand can be inefficient, especially when we have many points. Rather than writing out each value, we can use a loop to do the calculations for us.
+
+```python
+import matplotlib.pyplot as plt
+
+x_values = range(1, 1001)
+y_values = [x**2 for x in x_values]
+
+plt.style.use("seaborn-v0_8")
+fig, ax = plt.subplots()
+ax.scatter(x_values, y_values, s=10)
+
+ax.set_title("Square Numbers", fontsize=24)
+ax.set_xlabel("Value", fontsize=14)
+ax.set_ylabel("Square of Value", fontsize=14)
+
+ax.tick_params(labelsize=14)
+
+ax.axis([0, 1100, 0, 1_100_000])
+
+plt.show()
+```
+
+In this last part, `ax.axis([0, 1100, 0, 1_100_000])`, the axis() method requires four values: the minimum and maximum values for the x-axis and the y-axis. We run the x-axis from 0 to 1,100 and the y axis from 0 to 1,100,000.
+
+### Customizing Tick Labels
+
+When the numbers on an axis get large enough, Matplotlib defaults to scientific notation for tick labels. This is however customizable:
+
+```python
+import matplotlib.pyplot as plt
+
+x_values = range(1, 1001)
+y_values = [x**2 for x in x_values]
+
+plt.style.use("seaborn-v0_8")
+fig, ax = plt.subplots()
+ax.scatter(x_values, y_values, s=10)
+
+ax.set_title("Square Numbers", fontsize=24)
+ax.set_xlabel("Value", fontsize=14)
+ax.set_ylabel("Square of Value", fontsize=14)
+
+ax.tick_params(labelsize=14)
+
+ax.axis([0, 1100, 0, 1_100_000])
+ax.ticklabel_format(style='plain')
+
+plt.show()
+```
+
+The `ticklabel_format()` method allows us to override the default tick label style for any plot.
+
+### Defining Custom Colors
+
+We can change the color of the points by passing the argument `color` to `scatter()` with the name of a color to use in quotation marks as shown here:
+
+```python
+ax.scatter(x_values, y_values, color='red', s=10)
+```
+
+We can also define the custom colors using the RGB color model:
+
+```python
+ax.scatter(x_values, y_values, color=(0, 0.8, 0), s=10)
+```
+
+Values closer to 0 produce `darker` colors, and values closer to 1 produce `lighter` colors.
+
+### Using a Colormap
+
+A `colormap` is a sequence of colors in a gradient that moves from a starting to an ending color. Colormaps in visualizations are used to emphasize patterns in data. For example, we may make low values a light color and high values a darker color. Using a colormap ensures that all points in the visualization vary smoothly and accurately along a well-designed color scale.
+
+The `pyplot` module includes a set of in-built colormaps. To use one of these colormaps, one needs to specify how `pyplot` should assign a color to each point in the dataset.
+
+```python
+import matplotlib.pyplot as plt
+
+x_values = range(1, 1001)
+y_values = [x**2 for x in x_values]
+
+plt.style.use('seaborn-v0-8')
+fig, ax = plt.subplots()
+ax.scatter(x_values, y_values, c=y_values, cmap=plt.cm.Blues, s=10)
+
+ax.set_title("Square Numbers", fontsize=24)
+ax.set_xlabel("Value", fontsize=14)
+ax.set_ylabel("Square of Value", fontsize=14)
+
+ax.tick_params(labelsize=14)
+
+ax.axis([0, 1100, 0, 1_100_000])
+ax.ticklabel_format(style="plain")
+
+plt.show()
+```
+
+The `c` argument is similar to color but is used to associate a sequence of values with a color mapping. The code above colors the points with the lower y-values light blue and the points with higher y-values dark blue as shown below:
+
+![Colormap Example](files/color-map.png)
+
+### Saving plots
+
+To save a plot to a file, we can use the `savefig()` function. This function should be called before `plt.show()`.
+
+```python
+plt.savefig('squares_plot.png', bbox_inches='tight')
+```
+
+The initial argument is a filename. The optional argument `bbox_inches='tight'` is used to remove extra whitespace around the plot.
+
+## Random Walks
+
