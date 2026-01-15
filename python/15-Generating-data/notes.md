@@ -292,3 +292,124 @@ The initial argument is a filename. The optional argument `bbox_inches='tight'` 
 
 ## Random Walks
 
+A `random walk` is a path that is determined by a series of simple decisions, each of which is left entirely to chance. We might imagine a random walk as the path a confused ant or a child learning to walk would take if it took every step in a random direction. 
+
+Random walks have practical applications in nature, physics, biology, chemistry, and economics. For example, a pollen grain floating on a drop of water moves across the surface of the water because it is constantly pushed around by water moleculs. Molecular motion in a water drop is random, so the path a pollen grain traces on the surface is a random walk. 
+
+### Creating the RandomWalk Class
+
+The `RandomWalk` class will make random decisions about which direction the walk should take. It will have three attributes: one variable to track the number of points in the walk, and two lists to store the x- and y-coordinates of each point in the walk.
+
+We will only need two methods for the `RandomWalk` class: the `__init__()` method and `fill_walk()` method, which will calculate the points in the walk. 
+
+```python
+from random import choice
+
+class RandomWalk:
+    """A class to generate random walks"""
+
+    def __init__(self, num_points=5000):
+        """Initialize attributes of a walk"""
+        self.num_points = num_points
+
+        # All walks start at (0, 0)
+        self.x_value = [0]
+        self.y_value = [0]
+
+    def fill_walk(self):
+        """Calculate all the points in the walk"""
+        
+        # Keep taking steps until the walk reaches the desired length
+        while len(self.x_values) < self.num_points:
+
+            # Decide which direction to go, and how far to go
+            x_direction = choice([1, -1])
+            x_distance = choice([0, 1, 2, 3, 4])
+            x_step = x_direction * x_distance
+
+            y_direction = choice([1, -1])
+            y_distance = choice([0, 1, 2, 3, 4])
+            y_step = y_direction * y_distance
+
+            # Reject moves that go nowhere
+            if x_step == 0 and y_step == 0:
+                continue
+
+            # Calculate the new position
+            x = self.x_values[-1] + x_step
+            y = self.y_values[-1] + y_step
+
+            self.x_values.append(x)
+            self.y_values.append(y)
+
+```
+
+We set up the loop that runs until the walk is filled with the correct number of points. The main part of `fill_walk()` tells Python how to simulate four random decisions:
+
+    - Will the walk go right or left?
+    - How far will it go in that direction?
+    - Will it go up or down?
+    - How far will it go in that direction?
+
+We use `choice([1, -1])` to choose a value for `x_direction`, which returns either 1 for movement to the right or -1 for movement to the left. Next, `choice([0, 1, 2, 3, 4])` randomly selects a distance to move in that direction. We assign this value to `x_distance` and the inclusion of a 0 allows for the possibility of steps that have movement along only one axis.
+
+We then determine the length of each step in the x- and y-directions by multiplying the direction of movement by the distance chosen. A positive result for `x_step` means move to the right, a negative result means move to the left, and 0 means move vertically. A positive result for `y_step` means move up, negative means move down, and 0 means move horizontally. If the values for both `x_step` and `y_step` are 0, the walk does not go anywhere; when this happens, we continue the loop: `if x_step == 0 and y_step == 0: continue`
+
+To get the next x-value for the walk, we add the value in `x_step` to the last value stored in `x_values` and do the same for the y-values. When we have the new point's coordinates, we append them to `x_values` and `y_values`
+
+To plot the random walk;
+
+```python
+
+import matplotlib.pyplot as plt
+
+from random_walk import RandomWalk
+
+# Make a random walk
+rw = RandomWalk()
+rw.fill_walk()
+
+# Plot the points in the walk
+plt.style.use("classic")
+fig, ax = plt.subplots()
+ax.scatter(rw.x_values, rw.y_values, s=15)
+ax.set_aspect("equal")
+plt.show()
+
+```
+
+The output is as shown:
+
+![Random Walks](files/random-walks.png)
+
+### Generating Multiple Random Walks
+
+As every random walk is different, it would be fun to explore the various patterns that can be generated. 
+
+One way to use the preceding code to make multiple walks without having to run the program several times is to wrap it in a while loop:
+
+```python
+
+import matplotlib.pyplot as plt
+
+from random_walk import RandomWalk
+
+# Keep making new walks, as long as the program is active.
+
+while True:
+    # Make a random walk
+    rw = RandomWalk()
+    rw.fill_walk()
+
+    # Plot the points in the walk
+    plt.style.use("classic")
+    fig, ax = plt.subplots()
+
+    ax.scatter(rw.x_values, rw.y_values, s=15)
+    ax.set_aspect("equal")
+
+    plt.show()
+
+    keep_running = input("Make another walk? (y/n): ")
+    if keep_running == 'n':
+        break
