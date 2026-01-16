@@ -413,3 +413,165 @@ while True:
     keep_running = input("Make another walk? (y/n): ")
     if keep_running == 'n':
         break
+
+```
+
+### Styling the Walk
+
+#### Coloring the Points
+
+We use a colormap to show the order of the points in the walk, and remove the black outline from each dot so the color of the dots will be clearer. To color the points according to their position in the walk, we pass the `c` argument in a list containing the position of each point. 
+
+Since the points are plotted in order, this list just contains the numbers from 0 to 4,999:
+
+```python
+
+import matplotlib.pyplot as plt
+
+from random_walk import RandomWalk
+
+# Make a random walk
+rw = RandomWalk()
+rw.fill_walk()
+
+# Plot the points in the walk
+plt.style.use("classic")
+fig, ax = plt.subplots()
+
+point_numbers = range(rw.num_points)
+ax.scatter(rw.x_values, rw.y_values, c=point_numbers, cmap=plt.cm.Blues, edgecolors='none', s=15)
+
+ax.set_aspect("equal")
+
+plt.show()
+
+```
+
+![Random Walks Colored](files/colored-rw.png)
+
+#### Plotting the Starting and Ending Points
+
+We can also show their position along the walk in addition to coloring points, which would be useful to see exactly where each walk begins and ends. 
+
+To do so, we can plot the first and last points individually after the main series has been plotted. We will make the end points larger and color them differently to make them stand out.
+
+```python
+
+import matplotlib.pyplot as plt
+
+from random_walk import RandomWalk
+
+# Make a random walk
+rw = RandomWalk()
+rw.fill_walk()
+
+# Plot the points in the walk
+plt.style.use("classic")
+fig, ax = plt.subplots()
+
+point_numbers = range(rw.num_points)
+ax.scatter(
+    rw.x_values,
+    rw.y_values,
+    c=point_numbers,
+    cmap=plt.cm.Blues,
+    edgecolors="none",
+    s=15,
+)
+
+# Emphasizxe the first and last points
+ax.scatter(0, 0, c='green', edgecolors='none', s=100)
+ax.scatter(rw.x_values[-1], rw.y_values[-1], c='red', edgecolors='none', s=100)
+
+ax.set_aspect("equal")
+
+plt.show()
+
+```
+
+![Start and End points](files/points-rw.png)
+
+#### Cleaning Up the Axes
+
+We can remove the axes to avoid distracting from the path of each walk:
+
+```python
+
+import matplotlib.pyplot as plt
+
+from random_walk import RandomWalk
+
+# Make a random walk
+rw = RandomWalk()
+rw.fill_walk()
+
+# Plot the points in the walk
+plt.style.use("classic")
+fig, ax = plt.subplots()
+
+point_numbers = range(rw.num_points)
+ax.scatter(
+    rw.x_values,
+    rw.y_values,
+    c=point_numbers,
+    cmap=plt.cm.Blues,
+    edgecolors="none",
+    s=15,
+)
+
+# Emphasizxe the first and last points
+ax.scatter(0, 0, c="green", edgecolors="none", s=100)
+ax.scatter(rw.x_values[-1], rw.y_values[-1], c="red", edgecolors="none", s=100)
+
+# Remove the axes
+ax.get_xaxis().set_visible(False)
+ax.get_yaxis().set_visible(False)
+
+ax.set_aspect("equal")
+
+plt.show()
+
+```
+
+![Cleaner Axes](files/cleaner.png)
+
+#### Adding Plot Points
+
+We can increase the number of points, to give us more data to work with. To do so, we increase the value of `num_points` when we make a `RandomWalk` instance and adjust the size of each dot when drawing the plot:
+
+```python
+rw = RandomWalk(50_000)
+
+---
+
+ax.scatter(
+    rw.x_values,
+    rw.y_values,
+    c=point_numbers,
+    cmap=plt.cm.Blues,
+    edgecolors="none",
+    s=1,
+)
+```
+
+The above would create a random walk with 50,000 points and plot each point at size `s=1`. 
+
+![50_000 Random Walks](files/50_000-rw.png)
+
+#### Altering the Size to Fill the Screen
+
+A visualization is much more effective at communicating patterns in data if it fits nicely on the screen. To make the plotting window better fit our screen, we can adjust the size of Matplotlib's output. 
+
+```python
+fig, ax = plt.subplots(figsize=(15, 9))
+```
+
+The `figsize` parameter takes a tuple that tells Matplotlib the dimensions of the plotting window in inches. Matplotlib assumes the screen resolution is 100 pixels per inch; if this code does not give us an accurate plot size, we can adjust the numbers as necessary.
+
+Also, if we know our system's resolution, we can pass `subplots()` the resolution using the `dpi` parameter:
+
+```python
+fig, ax = plt.subplots(figsize=(10, 6), dpi=128)
+```
+
+This should help make the most efficient use of the space available on our screen. 
