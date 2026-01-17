@@ -575,3 +575,146 @@ fig, ax = plt.subplots(figsize=(10, 6), dpi=128)
 ```
 
 This should help make the most efficient use of the space available on our screen. 
+
+## Rolling Dice with Plotly
+
+Plotly is useful when creating visualizations that will be displayed in a browser since the visualizations automatically scale to fit the viewer's screen. They are also interactive; when the user howevers 
+
+We will build our initial visualization using `Plotly Express`, a subset of Plotly that focuses on generating plots with as little code as possible. 
+
+### Generating the Die Class
+
+We will create the following `Die` class to simulate the roll of one die:
+
+```python
+
+from random import randint
+
+class Die:
+    """A class representing a single die."""
+
+    def __init__(self, num_sides=6):
+        """Assume a six-sided die."""
+        self.num_sides = num_sides
+
+    def roll(self):
+        """Return a random value between 1 and number of sides."""
+        return randint(1, self.num_sides)
+
+```
+
+We then roll the die:
+
+```python
+
+from die import Die # Our code above
+
+# Create a D6
+die = Die()
+
+# Make some rolls, and store the results in a list
+results = []
+for roll_num in range(100):
+    result = die.roll()
+    results.append(result)
+
+print(results)
+
+```
+
+The code above should generate values between 1 and 6, 100 in total. 
+
+We can start by counting how many times we roll each numnber:
+
+```python
+
+from die import Die  # Our code above
+
+# Create a D6
+die = Die()
+
+# Make some rolls, and store the results in a list
+results = []
+for roll_num in range(100):
+    result = die.roll()
+    results.append(result)
+
+# Analyze the results
+frequencies = []
+poss_results = range(1, die.num_sides+1)
+for value in poss_results:
+    frequency = results.count(value)
+    frequencies.append(frequency)
+
+print(frequencies)
+
+```
+
+The result, `[13, 20, 16, 21, 11, 19]` is reasonable and we see six frequencies, one for each possible number when we roll a D6. Also, no frequency is significantly higher than any other.
+
+We can now generate a visualization in just a couple lines of code using `Plotly Express`
+
+```python
+import plotly.express as px
+
+from die import Die
+
+# Create a D6
+die = Die()
+
+# Make some rolls, and store the results in a list
+results = []
+for roll_num in range(100):
+    result = die.roll()
+    results.append(result)
+
+# Analyze the results
+frequencies = []
+poss_results = range(1, die.num_sides + 1)
+for value in poss_results:
+    frequency = results.count(value)
+    frequencies.append(frequency)
+
+# Visualize the results
+fig = px.bar(x=poss_results, y=frequencies)
+fig.show()
+
+```
+
+The result is:
+
+![Example](files/newplot.png)
+
+We can further customize the plot to add labels and styles for the chart
+
+```python
+
+import plotly.express as px
+
+from die import Die
+
+# Create a D6
+die = Die()
+
+# Make some rolls, and store the results in a list
+results = []
+for roll_num in range(100):
+    result = die.roll()
+    results.append(result)
+
+# Analyze the results
+frequencies = []
+poss_results = range(1, die.num_sides + 1)
+for value in poss_results:
+    frequency = results.count(value)
+    frequencies.append(frequency)
+
+# Visualize the results
+title = "Results of Rolling One D6 1,000 Times"
+labels = {'x': 'Result', 'y':'Frequency of Result'}
+fig = px.bar(x=poss_results, y=frequencies, title=title, labels=labels)
+fig.show()
+
+```
+
+![Example](files/newplot-1.png)
