@@ -718,3 +718,113 @@ fig.show()
 ```
 
 ![Example](files/newplot-1.png)
+
+### Rolling Two Dice
+
+To do this, we can modify our code to create two D6 dice to simulate the way we roll a pair of dice. Each time we roll the pair, we will add the two numbers (one from each die) and store the sum in results.
+
+```python
+
+import plotly.express as px
+
+from die import Die
+
+# Create two D6 dice.
+die_1 = Die()
+die_2 = Die()
+
+# Make some rolls, and store the results in a list
+results = []
+for roll_num in range(1000):
+    result = die_1.roll() + die_2.roll()
+    results.append(result)
+
+# Analyze the results
+frequencies = []
+max_results = die_1.num_sides + die_2.num_sides
+poss_results = range(2, max_results + 1)
+for value in poss_results:
+    frequency = results.count(value)
+    frequencies.append(frequency)
+
+# Visualize the results
+title = "Results of Rolling Two D6 1,000 Times"
+labels = {"x": "Result", "y": "Frequency of Result"}
+fig = px.bar(x=poss_results, y=frequencies, title=title, labels=labels)
+fig.show()
+
+```
+
+In the code above, in this case, the smallest possible result (2) is the sum of the smallest number of each die (1+1) while the largest possible result (12) is the sum of the largest number on each die. 
+
+![Rolling Two Dice](files/two-dice.png)
+
+The chart assumes a normal distribution. One is least likely to roll a 2 or a 12 and most likely to roll a 7. This happens because there are six possible ways to roll a 7: 1 and 6, 2 and 5, 3 and 4, 4 and 3, 5 and 2, and 6 and 1.
+
+We could add labels on our bars with the following code:
+
+```python
+
+fig = px.bar(x=poss_results, y=frequencies, title=title, labels=labels)
+
+fig.update_layout(xaxis_dtick=1)
+
+fig.show()
+
+```
+
+The `update_layout()` method acts on the `fig` object, which represents the overall chart. Here we use the `xaxis_dtick` argument, which specifies the distance between tick marks on the x-axis. We set that spacing to 1, so that every bar is labeled. 
+
+![Rolling Two Dice](files/two-dice-updated.png)
+
+### Rolling Dice of Different Sizes
+
+We can re-write the previous code to handle this:
+
+```python
+
+
+```python
+
+import plotly.express as px
+
+from die import Die
+
+# Create two D6 dice.
+die_1 = Die()
+die_2 = Die(10)
+
+# Make some rolls, and store the results in a list
+results = []
+for roll_num in range(50_000):
+    result = die_1.roll() + die_2.roll()
+    results.append(result)
+
+# Analyze the results
+frequencies = []
+max_results = die_1.num_sides + die_2.num_sides
+poss_results = range(2, max_results + 1)
+for value in poss_results:
+    frequency = results.count(value)
+    frequencies.append(frequency)
+
+# Visualize the results
+title = "Results of Rolling Two D6 50,000 Times"
+labels = {"x": "Result", "y": "Frequency of Result"}
+fig = px.bar(x=poss_results, y=frequencies, title=title, labels=labels)
+
+fig.show()
+
+```
+
+In the above, we pass the argument for `die_2 = Die(10)` and change the first loop to simulate 50,000 rolls instead of 1,000. 
+
+### Saving Figures
+
+We can always save the chart as an HTML file through the browser. This can also be done programmatically by replacing the call to `fig.show()` with a call to `fig.write_html()`
+
+```python
+fig.write_html('dice_visual_d6d10.html')
+```
+
+The `write_html()` method requires one argument: the name of the file to write to. If we only provide a filename, the file will be saved in the same directory as the `.py` file. We can allso call `write_html()` with a `Path` object, and write the output file anywhere we want on the system.
