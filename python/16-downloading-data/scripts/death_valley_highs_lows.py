@@ -4,7 +4,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-path = Path("weather_data/Sitka Weather 2021.csv")
+path = Path("weather_data/Death Valley 2021 Weather Data.csv")
 lines = path.read_text(encoding="utf-8").splitlines()
 reader = csv.reader(lines)
 header_row = next(reader)
@@ -14,20 +14,26 @@ dates, highs, lows = [], [], []
 
 for row in reader:
     current_date = datetime.strptime(row[2], "%Y-%m-%d")
-    high = int(row[4])
-    low = int(row[5])
-    dates.append(current_date)
-    highs.append(high)
-    lows.append(low)
+    try:
+        high = int(row[3])
+        low = int(row[4])
+    except ValueError:
+        print(f"Missing data for {current_date}")
+    else:
+        dates.append(current_date)
+        highs.append(high)
+        lows.append(low)
 
 # Plot the high temperatures
 plt.style.use("seaborn-v0_8")
 fig, ax = plt.subplots()
-ax.plot(dates, highs, color="red")
-ax.plot(dates, lows, color="blue")
+ax.plot(dates, highs, color="red", alpha=0.5)
+ax.plot(dates, lows, color="blue", alpha=0.5)
+ax.fill_between(dates, highs, lows, facecolor="blue", alpha=0.5)
 
 # Format plot
-ax.set_title("Daily High and Low Temperatures, 2021", fontsize=24)
+title = "Daily High and Low Temperatures, 2021\nDeath Valley, CA"
+ax.set_title(title, fontsize=20)
 ax.set_xlabel("", fontsize=16)
 ax.set_ylabel("Temperature (F)", fontsize=16)
 fig.autofmt_xdate()
