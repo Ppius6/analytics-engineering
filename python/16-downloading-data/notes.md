@@ -399,3 +399,310 @@ If all data for a date is retrieved without an error, the `else` block will run 
 
 ![Example](scripts/files/death_valley_highs_lows.png)
 
+## Mapping Global Datasets: GeoJSON Format
+
+Here, we will explore all the earthquakes that have occurred in the world during the previous month. Then we will make a map showing the location of these earthquakes and how significant each one was. Since the data is stored in GeoJSON format, we will work with it using the `json` module and Plotly's `scatter_geo()`
+
+To read in and examine the file we will be using:
+
+```python
+
+from pathlib import Path
+import json
+
+# Read data as a string and convert to a Python object
+path = Path('eq_data/Earthquake Data 1 Day.geojson')
+contents = path.read_text(encoding='utf-8')
+all_eq_data = json.loads(contents)
+
+# Create a more readable version of the data file
+path = Path('eq_data/Earthquake Data 1 Day.geojson')
+readable_contents = json.dumps(all_eq_data, indent=4)
+path.write_text(readable_contents)
+
+```
+
+`json.loads()` helps convert the string representation of the file to a Python object. 
+
+`json.dumps()` serializes a Python object into a JSON-formatted string. We use `indent=4` for pretty-printing. Also, we could use `sort_keys=True` to sort object keys and `ensure_ascii=False` to keep non-ASCII characters intact.
+
+If we explore the output file, this first part:
+
+```json
+{
+    "type": "FeatureCollection",
+    "metadata": {
+        "generated": 1649052296000,
+        "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_day.geojson",
+        "title": "USGS Magnitude 1.0+ Earthquakes, Past Day",
+        "status": 200,
+        "api": "1.10.3",
+        "count": 160
+    },
+    "features": [
+```
+
+includes a section with the key `metadata` that tells us when the data file was generated and where we can find the data online. It also gives us a human-readable title and the number of earthquakes included in this file. So, based on our file, in the 24-hour period, `160 earthquakes` were recorded.
+
+The GeoJSON file has a structure that is helpful for location-based data. The information is stored in a list associated with the key `features`. Since the file contains earthquake data, the data is in list form where every item in the list corresponds to a single earthquake. 
+
+When we explore a single earthquake:
+
+```json
+
+        {
+            "type": "Feature",
+            "properties": {
+                "mag": 1.6,
+                "place": "27 km NNW of Susitna, Alaska",
+                "time": 1649051836769,
+                "updated": 1649052020437,
+                "tz": null,
+                "url": "https://earthquake.usgs.gov/earthquakes/eventpage/ak0224bju1jx",
+                "detail": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/ak0224bju1jx.geojson",
+                "felt": null,
+                "cdi": null,
+                "mmi": null,
+                "alert": null,
+                "status": "automatic",
+                "tsunami": 0,
+                "sig": 39,
+                "net": "ak",
+                "code": "0224bju1jx",
+                "ids": ",ak0224bju1jx,",
+                "sources": ",ak,",
+                "types": ",origin,phase-data,",
+                "nst": null,
+                "dmin": null,
+                "rms": 0.54,
+                "gap": null,
+                "magType": "ml",
+                "type": "earthquake",
+                "title": "M 1.6 - 27 km NNW of Susitna, Alaska"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -150.7585,
+                    61.7591,
+                    56.3
+                ]
+            },
+            "id": "ak0224bju1jx"
+        },
+```
+
+there is a lot of information about each earthquake including `mag` which represents the magnitude of the earthquake, `title` of the event, and `geometry` which provides the location of where the earthquake occurred. 
+
+### Making a List of All Earthquakes
+
+```python
+
+from pathlib import Path
+import json
+
+# Read data as a string and convert to a Python object
+path = Path("eq_data/Earthquake Data 1 Day.geojson")
+contents = path.read_text(encoding="utf-8")
+all_eq_data = json.loads(contents)
+
+# Examine all earthquakes in the dataset
+all_eq_dicts = all_eq_data['features']
+print(len(all_eq_dicts))
+
+```
+
+The output is:
+
+```
+pius@Piuss-MBP scripts % uv run eq_explore_data.py
+160
+```
+
+which indicates that there are `160` earthquakes in our file.
+
+### Extracting Magnitudes
+
+We can loop through the list containing data about each earthquake, and extract any information we want. 
+
+```python
+
+from pathlib import Path
+import json
+
+# Read data as a string and convert to a Python object
+path = Path("eq_data/Earthquake Data 1 Day.geojson")
+contents = path.read_text(encoding="utf-8")
+all_eq_data = json.loads(contents)
+
+# Examine all earthquakes in the dataset
+all_eq_dicts = all_eq_data["features"]
+
+mags = []
+
+for eq_dict in all_eq_dicts:
+    mag = eq_dict['properties']['mag']
+    mags.append(mag)
+    
+print(mags[:10])
+
+```
+
+Here, since each earthquake is represented by the dictionary `eq_dict` in our loop, and each earthquake's magnitude is stored in the `properties` section of the dictionary, under the key `mag`, we then store each magnitude and append it to the list `mags`
+
+The output is:
+
+```
+pius@Piuss-MBP scripts % uv run eq_explore_data.py
+[1.6, 1.6, 2.2, 3.7, 2.92000008, 1.4, 4.6, 4.5, 1.9, 1.8]
+```
+
+Next, we will pull the location data for each earthquake, then make a map of the earthquakes.
+
+### Extracting Location Data
+
+The location data for each earthquake is stored under the key `geometry` and inside it, is a `coordinates` key with two values: longitude and latitude:
+
+```python
+
+---
+
+# Examine all earthquakes in the dataset
+all_eq_dicts = all_eq_data["features"]
+
+mags, lons, lats  = [], [], []
+
+for eq_dict in all_eq_dicts:
+    mag = eq_dict['properties']['mag']
+    lon = eq_dict['geometry']['coordinates'][0]
+    lat = eq_dict["geometry"]["coordinates"][1]
+    mags.append(mag)
+    lons.append(lon)
+    lats.append(lat)
+
+print(mags[:10])
+print(lons[:5])
+print(lats[:5])
+
+```
+
+The output is as shown below:
+
+```
+[1.6, 1.6, 2.2, 3.7, 2.92000008, 1.4, 4.6, 4.5, 1.9, 1.8]
+[-150.7585, -153.4716, -148.7531, -159.6267, -155.248336791992]
+[61.7591, 59.3152, 63.1633, 54.5612, 18.7551670074463]
+```
+
+### Building a World Map
+
+To build the map, we do as follows using lotly's `scatter_geo()`
+
+```python
+
+from pathlib import Path
+import json
+
+import plotly.express as px
+
+# Read data as a string and convert to a Python object
+path = Path("eq_data/Earthquake Data 1 Day.geojson")
+contents = path.read_text(encoding="utf-8")
+all_eq_data = json.loads(contents)
+
+# Examine all earthquakes in the dataset
+all_eq_dicts = all_eq_data["features"]
+
+mags, lons, lats = [], [], []
+
+for eq_dict in all_eq_dicts:
+    mag = eq_dict["properties"]["mag"]
+    lon = eq_dict["geometry"]["coordinates"][0]
+    lat = eq_dict["geometry"]["coordinates"][1]
+    mags.append(mag)
+    lons.append(lon)
+    lats.append(lat)
+
+print(mags[:10])
+print(lons[:5])
+print(lats[:5])
+
+title = 'Global Earthquakes'
+fig = px.scatter_geo(lat=lats, lon=lons, title=title)
+fig.show()
+
+```
+
+Map output: 
+
+![Map](scripts/files/earthquake-map.png)
+
+### Representing Magnitudes
+
+A map of earthquake activity should show the magnitude of each earthquake and not just where it occured. 
+
+We add `size=mags` here:
+
+```python
+
+title = 'Global Earthquakes'
+fig = px.scatter_geo(lat=lats, lon=lons, size=mags, title=title)
+fig.show()
+
+```
+
+The output is as shown:
+
+![Example](scripts/files/magnitude.png)
+
+The map is better, but difficult to pick out which points represent the most significant earthquakes. We can use color to represent magnitudes as well
+
+```python
+
+fig = px.scatter_geo(lat=lats, lon=lons, size=mags, title=title, color=mags, color_continuous_scale='Viridis', labels={'color':'Magnitude'}, projection='natural earth')
+
+```
+
+The `color_continuous_scale` argument tells Plotly which color scale to use. 
+
+The projection argument accepts a number of common map projections. 
+
+The output is shown below:
+
+![Map](scripts/files/colored-magnitude.png)
+
+### Adding Hover Text
+
+To add more informative text which would appear when we hover over the marker representing the earthquake, we use the `hover_name` argument:
+
+```python
+
+
+mags, lons, lats, eq_titles = [], [], [], []
+
+for eq_dict in all_eq_dicts:
+    mag = eq_dict["properties"]["mag"]
+    lon = eq_dict["geometry"]["coordinates"][0]
+    lat = eq_dict["geometry"]["coordinates"][1]
+    eq_title = eq_dict['properties']['title']
+    mags.append(mag)
+    lons.append(lon)
+    lats.append(lat)
+    eq_titles.append(eq_title)
+
+title = 'Global Earthquakes'
+fig = px.scatter_geo(
+    lat=lats,
+    lon=lons,
+    size=mags,
+    title=title,
+    color=mags,
+    color_continuous_scale="Viridis",
+    labels={"color": "Magnitude"},
+    projection="natural earth",
+    hover_name=eq_titiles,
+)
+fig.show()
+
+```
+
