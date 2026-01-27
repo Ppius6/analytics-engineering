@@ -99,41 +99,89 @@
 #     print(f"\nHello, {formatted_name}")
 
 
-def greet_someone(names):
-    """Print a greeting for each user in a list."""
+# def greet_someone(names):
+#     """Print a greeting for each user in a list."""
 
-    for name in names:
-        msg = f"Hello, {name.title()}!"
-        print(msg)
-
-
-name_list = ["Me", "Wewe"]
-greet_someone(name_list)
-
-# Taking an input, storing the name and returning a greeting
-
-users = []
+#     for name in names:
+#         msg = f"Hello, {name.title()}!"
+#         print(msg)
 
 
-def greet_someone(names):
-    """Print a greeting for each user in a list."""
+# name_list = ["Me", "Wewe"]
+# greet_someone(name_list)
 
-    for name in names:
-        msg = f"Hello, {name.title()}!"
-        print(msg)
+# # Taking an input, storing the name and returning a greeting
+
+# users = []
 
 
-while True:
-    name = input(
-        "\nPlease enter your name (or 'q' at any time to quit or 'done' when done entering your name): "
-    )
+# def greet_someone(names):
+#     """Print a greeting for each user in a list."""
 
-    if name == "q":
-        break
+#     for name in names:
+#         msg = f"Hello, {name.title()}!"
+#         print(msg)
 
-    if name == "done":
-        break
 
-    users.append(name)
+# while True:
+#     name = input(
+#         "\nPlease enter your name (or 'q' at any time to quit or 'done' when done entering your name): "
+#     )
 
-greet_someone(users)
+#     if name == "q":
+#         break
+
+#     if name == "done":
+#         break
+
+#     users.append(name)
+
+# greet_someone(users)
+
+
+# Modifying a list
+
+non_assigned_students = ["Pius", "Chris", "Taylor", "Muigai"]
+assigned_students = []
+
+while non_assigned_students:
+    current_student = non_assigned_students.pop()
+    print(f"Assigning: {current_student}")
+    assigned_students.append(current_student)
+
+print("\nThe following students have been assigned:")
+for assigned_student in assigned_students:
+    print(assigned_student)
+
+# Function
+
+
+def print_students(non_assigned_students, assigned_students):
+
+    while non_assigned_students:
+        current_student = non_assigned_students.pop()
+        print(f"Assigning: {current_student}")
+        assigned_students.append(current_student)
+
+
+def show_assigned_students(assigned_students):
+    print("\nThe following students have been assigned:")
+    for assigned_student in assigned_students:
+        print(assigned_student)
+
+
+non_assigned_students = ["Pius", "Chris", "Taylor", "Muigai"]
+assigned_students = []
+
+print_students(non_assigned_students, assigned_students)
+show_assigned_students(assigned_students)
+
+# Abitrary arguments
+
+
+def print_countries(*countries):
+    """Print countries in Africa"""
+    print(countries)
+
+
+print_countries("Ethiopia", "TZ", "UG", "RW", "Burundi", "SA", "Lesotho")

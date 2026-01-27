@@ -486,3 +486,134 @@ We could also customize the marker colors, for instance to darker blue, with som
 ![Image](files/github-api.png)
 
 ## The Hacker News API
+
+On `Hacker News (https://news.ycombinator.com)`, people share articles about programming and technology and engage in lively discussions about articles. The Hacker News API provides access to data about all submissions, comments, and one can use the API wihout having to register for a key.
+
+This call would return information about the current top article as of this writing: `https://hacker-news.firebaseio.com/v0/item/31353677.json` and if we run the url, we get this output:
+
+```json
+{"by":"sohkamyung","descendants":307,"id":31353677,"kids":[31354987,31354235,31354040,31358602,31354201,31354991,31354315,31353775,31353925,31354169,31354273,31354437,31356902,31358694,31363418,31353862,31357186,31356379,31356826,31355085,31369435,31357936,31354142,31354213,31356311,31357865,31353929,31364954,31354621,31356002,31356407,31355491,31359235,31356053,31354347,31355326,31354703,31353802],"score":786,"time":1652361401,"title":"Astronomers reveal first image of the black hole at the heart of our galaxy","type":"story","url":"https://public.nrao.edu/news/astronomers-reveal-first-image-of-the-black-hole-at-the-heart-of-our-galaxy/"}%
+```
+
+We can run the url through the `json.dumps()` method:
+
+```python
+
+import requests
+import json
+
+# Make an API call, and store the response
+url = "https://hacker-news.firebaseio.com/v0/item/31353677.json"
+r = requests.get(url)
+print(f"Status code: {r.status_code}")
+
+# Exploring the structure of the data
+response_dict = r.json()
+response_string = json.dumps(response_dict, indent=4)
+print(response_string)
+```
+
+which gives us this output in a dictionary of information about the article with the ID: 31353677.
+
+```json
+
+Status code: 200
+{
+    "by": "sohkamyung",
+    "descendants": 307,
+    "id": 31353677,
+    "kids": [
+        31354987,
+        31354235,
+
+        --snip--
+
+        31355326,
+        31354703,
+        31353802
+    ],
+    "score": 786,
+    "time": 1652361401,
+    "title": "Astronomers reveal first image of the black hole at the heart of our galaxy",
+    "type": "story",
+    "url": "https://public.nrao.edu/news/astronomers-reveal-first-image-of-the-black-hole-at-the-heart-of-our-galaxy/"
+}
+
+```
+
+The key `descendants` tell us the number of comments the article has received. The key `kids` provides the IDs of all comments made directly in response to this submission. Each of these comments may have comments of their own as well, so the number of descendants a submission has is usually greater than its number of kids. We can also see the `title` and the `url` of the article being discussed.
+
+The following URL returns a simple list of all the IDs of the current top articles on Hacker News: `https://hacker-news.firebaseio.com/v0/topstories.json`
+
+We can use this call to find out which articles are on the home page right now, and then generate a series of API calls similar to the one we just examined. With this approach, we can print a summary of all the articles on the front page of Hacker News at the moment:
+
+```python
+
+from operator import itemgetter
+
+import requests
+
+# Make an API call and check the response
+url = "https://hacker-news.firebaseio.com/v0/topstories.json"
+r = requests.get(url)
+print(f"Status code: {r.status_code}")
+
+# Process information about each submission
+submission_ids = r.json()
+submission_dicts = []
+for submission_id in submission_ids[:30]:
+    # Make a new API call for each submission
+    url = f"https://hacker-news.firebaseio.com/v0/item/{submission_id}.json"
+    r = requests.get(url)
+    print(f"id: {submission_id}\tstatus: {r.status_code}")
+    response_dict = r.json()
+    
+    # Build a dictionary for each article
+    submission_dict = {
+        'title': response_dict['title'],
+        'hn_link': f"https://news.ycombinator.com/item?id={submission_id}",
+        'comments': response_dict['descendants'],
+    }
+    submission_dicts.append(submission_dict)
+    
+submission_dicts = sorted(submission_dicts, key=itemgetter('comments'), reverse=True)
+
+for submission_dict in submission_dicts:
+    print(f"\nTitle: {submission_dict['title']}")
+    print(f"Discussion link: {submission_dict['hn_link']}")
+    print(f"Comments: {submission_dict['comments']}")
+
+```
+
+For the code above, we use `itemgetter()` to sort the list of dictionaries by the number of comments. It pulls the value associated with the key `comments` from each dictionary in the list. The `sorted()` function then uses the value as its basis for sorting the list. We sort the list in reverse order, to place the most-commented stories first.
+
+We loop through the list and print out three pieces of information about each of the top submissions: the title, a link to the discussion page, and the number of comments the submission currently has:
+
+```
+Status code: 200
+id: 46736815    status: 200
+id: 46775961    status: 200
+--snip--
+id: 46760329    status: 200
+id: 46769051    status: 200
+
+Title: France Aiming to Replace Zoom, Google Meet, Microsoft Teams, etc.
+Discussion link: https://news.ycombinator.com/item?id=46767668
+Comments: 540
+
+Title: Apple introduces new AirTag with longer range and improved findability
+Discussion link: https://news.ycombinator.com/item?id=46765819
+Comments: 498
+
+--snip--
+
+Title: Cyclic Subgroup Sum
+Discussion link: https://news.ycombinator.com/item?id=46714291
+Comments: 1
+
+Title: The state of Linux music players in 2026
+Discussion link: https://news.ycombinator.com/item?id=46776564
+Comments: 0
+```
+
+We can always use the same process to access and analyze information with any API. With this data, we could make a visualization showing which submissions have inspired the most active recent discussions.
