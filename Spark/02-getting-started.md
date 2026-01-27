@@ -40,3 +40,54 @@ strings.show(10, truncate=False)
 strings.count()
 
 ```
+
+## The Execution Hierarchy
+
+To write PySpark code, we must understand how Spark breaks down the code into units of work. This hierarchy is critical:
+
+- `Application`: A user program consisting of a `Driver` program and `Executors` on the cluster.
+
+- `Job`: A parallel computation triggered by a `Spark Action` (e.g., save(), collect(), count())
+
+- `Stage`: A job is divided into stages. Stages are created based on operations that can be performed serially versus those that require a data shuffle.
+
+- `Task`: The smallest unit of work. A task is sent to one executor. Each task maps to a single core and works on a single `partition` of data.
+
+## Transformation, Actions, and Lazy Evaluation
+
+Spark operations fall into two categories. 
+
+`Transformations (Lazy)`: Transformations transform a DataFrame into a new DataFrame without altering the original (immutability). Examples include `select(), filter(), groupBy()`
+
+- `Lazy Evaluation`: Spark does not execute these commands immediately. Instead, it records them as a `lineage` of instructions to be executed later. This allows Spark to look at the entire chain of transformations and optimize the execution plan.
+
+`Actions (Eager)`: Actions trigger the lazy evaluation. They tell spark, "Okay, I am done defining the plan; now compute the result."
+
+Examples include `show(), count(), collect(), save()`
+
+`Narrow vs Wide Transformations`: Spark optimizes based on dependencies between transformations.
+
+- `Narrow Dependencies`: Each input partition contributes to only one output partition. No data movement is required across the network.
+
+Examples include `filter(), select()`
+
+- `Wide Dependencies`: Input partitions contribute to many output partitions. This forces a `Shuffle`, where data is written to disk and exchanged across the cluster network. 
+
+Examples include `groupBy(), orderBy()`
+
+## The Spark UI
+
+When we run a Spark application, the driver launches a web UI (defaulting to `http://localhost:4040` in local mode). This UI is our primary debugging tool. It lets one visualize the Directed Acyclic Graph (DAG) of our jobs, inspect how long stages take, and see if tasks are failing or if data is being shuffled excessively.
+
+## Our First Standalone Application: Counting M&Ms
+
+To move beyond the shell, we write standalone applications (Python scripts) and submit them to Spark. The book provides an example script (mnmcount.py) that reads a CSV of M&M color counts by state and aggregates them.
+
+The code structure:
+
+- Initialize sPARK
+- Read Data
+- Transform (Lazy)
+- Action (Execute)
+
+When submitting the job, we do not run this script with the standard python command. Instead, one use `spark-submit`, which sets up the Spark environment and dependencies: `$SPARK_HOME/bin/spark-submit mnmcount.py data/mnm_dataset.csv`
