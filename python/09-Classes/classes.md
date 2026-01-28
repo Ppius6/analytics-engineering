@@ -10,7 +10,7 @@ Making an object from a class is called `instantiation`, and we work with `insta
 
 Think of a blueprint for building houses.
 
-- An `instance` is the actual house built from the blueprint.
+- An `instance` is the actual house built from the blueprint or plan.
 
 - An `attribute` is the characteristics or properties of the house
 
