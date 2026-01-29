@@ -75,6 +75,15 @@ uv pip install django
 
 ```
 
+### uv
+
+It is a:
+
+- Fast Python package installer and resolver written in Rust
+- Modern replacement for `pip`, `venv`, and `virtualenv`
+- Significantly faster and more reliable dependency resolution
+- Backward compatible with `pip`
+
 or 
 
 ```
@@ -201,3 +210,145 @@ Django should start a server called the `development server` which should help u
 From the url, we see that the project is listening for requests on port `8000` on out computer, also called a `localhost`. The term `localhost` refers to a server that only processes requests on our system; it does not allow anyone else to see the pages we are building.
 
 `NOTE`: _If we receive the error message "That port is already in use," tell Django to use a different port by entering `python manage.py runserver 8001` and then cycling through higher numbers until you find an open port_.
+
+## Starting an App
+
+A Django _project_ is organized as a group of individual __apps__ that work together to make the project work as a whole. 
+
+While keeping the development server, we will proceed to start an app:
+
+```python
+
+python manage.py startapp learning_logs
+
+```
+
+This command `startapp _appname_` tells Django to create the infrastructure needed to build an application. When we look in the project directory, there is a new folder called `learning_logs`. 
+
+If we run `ls`, we see the following files:
+
+```python
+(python) pius@macbookpro learning_logs % ls
+__init__.py     admin.py        apps.py         migrations      models.py       tests.py        views.py
+```
+
+The most important files are `models.py`, `admin.py`, and `views.py`. We will use `models.py` to define the data we want to manage in our application.
+
+### Defining Models
+
+While thinking about our data, each user will need to create a number of topics in their learning log. Each entry they make will be tied to a topic, and these entries will be displayed as text. We will also need to store the timestamp of each entry so we can show users when they made each one.
+
+If we open the file `models.py` and look at its existing content:
+
+```python
+
+from django.db import models
+
+# Create your models here.
+
+```
+
+A module called `models` is being imported, and we are being invited to create models of our own. A `model` tells Django how to work with the data that will be stored in the app. A model is a class; it has attributes and methods, just like every class we have discussed.
+
+For the model for the topics users will store:
+
+```python
+
+from django.db import models
+
+
+class Topic(models.Model):
+    """A topic the user is learning about."""
+
+    text = models.CharField(max_length=200)
+    date_added = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        """Return a string representation of the model."""
+        return self.text
+```
+
+We have created a class called `Topic` which inherits from `Model`, a parent class included in Django that defines a model's basic functionality. We add two attributes to the Topic class: `text` and `date_added`.
+
+The `text` attribute is a `CharField`, a piece of data that is made up or characters or text. We can use `CharField` when we want to store a small amount of text, such as a name, a title, or a city. When we define a `CharField` attribute, we have to tell Django how much space it should reserve in the database. Here, we give it a `max_length` of 200 characters, which should be enough to hold most topic names.
+
+The `date_added` attribute is a `DateTimeField`, a piece of data that will record a date and time. We pass the argument `auto_now_add=True`, which tells Django to automatically set this attribute to the current date and time whenever the user creates a new topic.
+
+It is a good idea to tell Django how we want it to represent an instance of a model. If a model has a `__str__()` method, Django calls that method whenever it needs to generate output referring to an instance of that model. Here, we have written a `__str__()` method that returns the value assigned to the text attribute.
+
+NOTE: To see the different kinds of fields we can use in Django models, refer to the [Django Model Field Reference](https://docs.djangoproject.com/en/6.0/ref/models/fields/).
+
+### Activating Models
+
+To use our models, we have to tell Django to include our app in the overall project. We do this by modifying the `settings.py` file in the project directory, and adding our app to the `INSTALLED_APPS` list.
+
+```python
+
+# Application definition
+
+INSTALLED_APPS = [
+    # My apps
+    'learning_logs',
+    # Default Django apps
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+]
+
+```
+
+We add the name of our app, `learning_logs`, to the list of installed apps.
+
+Grouping apps together in a project helps keep track of them as the project grows to include more apps. We place our own apps before the default Django apps to make it easier to find them later.
+
+Now, we need to tell Django to modify the database so it can store information related to the model `Topic` we just created. We do this in two steps:
+
+```python
+
+python manage.py makemigrations learning_logs
+python manage.py migrate
+
+```
+
+The first command, `makemigrations`, tells Django to figure out how to modify the database so it can store information for the models we have created. The second command, `migrate`, applies those changes to the database.
+
+The output of the first command is:
+
+```python
+
+(python) pius@macbookpro learning_log % python manage.py makemigrations learning_logs
+Migrations for 'learning_logs':
+  learning_logs/migrations/0001_initial.py
+    + Create model Topic
+(python) pius@macbookpro learning_log %
+
+```
+
+Django reports that it has created a migration file called `0001_initial.py` in the `migrations` directory of our app. This file contains the instructions Django will use to modify the database.
+
+When we run the `migrate` command, Django applies the migration and modifies the database accordingly. The output is:
+
+```python
+
+Operations to perform:
+  Apply all migrations: admin, auth, contenttypes, learning_logs, sessions
+Running migrations:
+  Applying learning_logs.0001_initial... OK
+(python) pius@macbookpro learning_log %
+```
+
+Django reports that it has applied the migration we just created. Now the database is ready to store information related to the `Topic` model.
+
+Whenever we want to modify the data that Learning Log manages, we will follow these three steps: 
+
+- Modify the models in `models.py`
+
+- Call `makemigrations` to tell Django to prepare a migration
+
+- Tell Django to apply the migration to the database by calling `migrate`
+
+### The Django Admin Site
+
