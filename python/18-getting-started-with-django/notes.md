@@ -352,3 +352,182 @@ Whenever we want to modify the data that Learning Log manages, we will follow th
 
 ### The Django Admin Site
 
+Django makes it easy to work with our models through its admin site. It is only meant to be used by the site administrators, not by regular users of the site.
+
+#### Setting up a Superuser
+
+Django allows us to create a `superuser`, a user who has all privileges available on a site. A user's `privileges` control the actions they can take. The more restrictive privilege settings allow a user to only read public information on the site. Registered users typically have the privilege of reading their own private data and some selected information available only to members.
+
+To create a superuser in Django, we enter the following command:
+
+```python
+
+python manage.py createsuperuser
+
+```
+
+The command above gives us prompts to enter a username, email address, and password for the superuser. After entering the required information, the superuser is created.
+
+#### Registering Models with the Admin Site
+
+Django includes some models in the admin site automatically, such as `User` and `Group`, but the models we create need to be added manually. 
+
+When we started the `learning_logs` app, Django created an `admin.py` file in the same directory as `models.py`. 
+
+```python
+
+from django.contrib import admin
+
+# Register your models here.
+```
+
+To register `Topic` with the admin site, we enter the following:
+
+```python
+
+from django.contrib import admin
+
+from .models import Topic
+
+admin.site.register(Topic)
+```
+
+The code above first imports the model we want to register, `Topic`. The dot in front of `models` tells Django to look for `models.py` in the same directory as `admin.py`. The code `admin.site.register()` tells Django to manage our model through the admin site.
+
+To access the admin site, we use our superuser credentials. We navigate to `http://localhost:8000/admin/
+
+This page allows us to add new users and groups, and change existing ones. We can also work with data related to the `Topic` model that we just defined.
+
+![Admin](scripts/files/django-admin.png)
+
+#### Adding Topics
+
+Now that `Topic` has been registered with the admin site, we can add our first topic. The steps are as follows:
+
+- Click `Topics` to go to the topics page, which is mostly empty since we have not added any topics yet.
+
+- Click `Add Topic` in the upper right corner to go to the page for adding a new topic.
+
+- Enter a name for the topic in the `Text` field. The `Date added` field is filled in automatically. You will be sent back to the `Topics` page, which now shows the topic you just added.
+
+After adding some topics, the examples page looks like this:
+
+![Topics](scripts/files/topics.png)
+
+### Defining the Entry Model
+
+For a user to record what they have been learning about chess and rock climbing, we need to define a model for the kinds of entries users can make in their learning logs. Each entry needs to be associated with a particular topic. This relationship is called a `one-to-many` relationship because each topic can have many entries, but each entry is associated with only one topic.
+
+To define the `Entry` model, we open `models.py` in the `learning_logs` app and add the following code:
+
+```python
+
+from django.db import models
+
+
+class Topic(models.Model):
+    """A topic the user is learning about."""
+
+    text = models.CharField(max_length=200)
+    date_added = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        """Return a string representation of the model."""
+        return self.text
+
+
+class Entry(models.Model):
+    """Something specific learned about a topic"""
+
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    text = models.TextField()
+    date_added = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name_plural = 'entries'
+        
+    def __str__(self):
+        """Return a simple string representing the entry."""
+        return f"{self.text[:50]}..."
+
+```
+
+In the code above, the `Entry` class inherits from Django's base `Model` class, just as `Topic` did. The first attribute, `topic` is a `ForeignKey` instance, meaning a reference to another record in the database. 
+
+This is the code that connects each entry to a specific topic. Each topic is assigned a `key`, or ID, when it's created. When Django needs to establish a connection between two pieces of data, it uses the keys associated with each piece of information. 
+
+We will use these connections shortly to retrieve all the entries associated with a certain topic. The `on_delete=models.CASCADE` argument tells Django that when a topic is deleted, all the entries associated with that topics should be deleted as well. This is known as a `cascading delete`.
+
+Next, the attribute `text` is an instance of `TextField`. It does not need a size limit, because we do not want to limit the size of individual entries. The `date_added` attribute allows us to present entries in the order they were created, and to place a timestamp next to each entry.
+
+The `Meta` class is nested inside the `Entry` class. The `Meta` class holds extra information for managing a model; here, it lets us set a special attribute telling Django to use `Entries` when it needs to refer to more than one entry. Without this, Django would refer to multiple entries as `Entrys`.
+
+The `__str__()` method tells Django which information to show when it refers to individual entries. Because an entry can be a long body of text,`__str__()` returns just the first 50 characters of text. We also add an ellipsis to clarify that we are not always displaying the entire entry. 
+
+### Migrating the Entry Model
+
+Since we have added a new model, we need to migrate the database again. This process will become quite familiar: 
+
+- You modify `models.py`,
+- Run the command `python manage.py makemigrations app_name`
+- Then run the command `python manage.py migrate`
+
+The output:
+
+```python
+
+Migrations for 'learning_logs':
+  learning_logs/migrations/0002_entry.py
+    + Create model Entry
+(python) pius@macbookpro learning_log % python manage.py migrate
+Operations to perform:
+  Apply all migrations: admin, auth, contenttypes, learning_logs, sessions
+Running migrations:
+  Applying learning_logs.0002_entry... OK
+(python) pius@macbookpro learning_log %
+
+```
+
+A new migration called _0002_entry.py_ is generated, which tells Django how to modify the database to store information related to the model `Entry`. When we issue the `migrate` command, we see that Django applies this migration and everything worked properly.
+
+### Registering Entry with the Admin Site.
+
+We also need to register the `Entry` model. The `admin.py` should look like this:
+
+```python
+
+from django.contrib import admin
+
+from .models import Topic, Entry
+
+admin.site.register(Topic)
+admin.site.register(Entry)
+
+```
+
+`Entries` is now listed:
+
+![Entries](scripts/files/entries.png)
+
+We will then add an entry for one of our topic created earlier.
+
+
+  The opening is the first part of the game, roughly the first ten moves or so. In the opening, it is a good idea to do three things - bring out your bishops and knights, try to control the center of the board, and castle your king.
+
+  Of course, these are just guidelines. It will be important to learn when to follow these guidelines and when to disregard these suggestions.
+
+When we click `Save`, we are brought back to the main admin page for entries. Here, we will see the benefit of using `text[:50]` as the string representation for each entry; it is much easier to work with multiple entries in the admin interface if you see only the first part of an entry, rather than the entire text of each entry. 
+
+We can add more entries:
+
+For `Chess`
+
+  In the opening phase of the game, it is important to bring out your bishops and knights. These pieces are powerful and maneuverable enough to play a significant role in the beginning moves of a game.
+
+For `Rock Climbing`
+
+  One of the most important concepts in climbing is to keep your weight on your feet as much as possible. There's a myth that climbers can hang all day on their arms. In reality, good climbers have practiced specific ways of keeping their weight over their feet whenever possible.
+
+These three entries will give us something to work with as we continue to develop `Learning Log`.
+
+### The Django Shell

@@ -6,6 +6,10 @@
 
 In the early 21st century, the internet began exploding. Google had indexed the web but needed a way to calculate rankings (PageRank) across petabytes of data. However, traditional servers could not handle that. 
 
+The resulting need for new approaches led to the creation of the `Google File System`, `MapReduce`, and `BigTable`.
+
+While GFS provided a fault-tolerant and distributed filesystem across many commodity hardware servers in a cluster farm, Bigtable offered scalable storage of structured data across GFS. MR introduced a new parallel programming paradigm based on functional programming, for large-scale data processing distributed over GFS and Bigtable.
+
 - In 2003, Google published the __GFS (Google File System)__ paper which described how to store massive files by breaking them into chunks and spreading them across thousands of cheap computers. 
 
 - In 2004, Google published the __MapReduce__ paper which described a programming model to process that data.
@@ -20,7 +24,8 @@ So, the world wanted what Google had.
 - In 2006, __Doug Cutting__ at __Yahoo!__ created __Apache Hadoop__ based on Google's papers. It had two parts: `HDFS` - The file system (Storage), and `MapReduce` - the processing engine (Compute). 
 
 Hadoop MapReduce was revolutionary but slow:
-1. It was "Disk-based", so after every tiny step (Map), it wrote the result to the Hard Disk before starting the next step (Reduce).
+
+1. It was _Disk-based_, so after every tiny step (Map), it wrote the result to the Hard Disk before starting the next step (Reduce).
 
 2. It was fine for simple counting, but terrible for __Machine Learning__, which needs to loop over data hundreds of times (iterative processing).
 
