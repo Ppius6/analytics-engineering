@@ -108,7 +108,7 @@ ls learning_log_project
 
 ```
 
-`ls` is short for `list directory` which helps us confirm if `Django` has created a new directory for our project `11_project`. Once confirmed, we can also list what is inside the directory of our project.
+`ls` is short for `list directory` which helps us confirm if `Django` has created a new directory for our project `learning_logs`. Once confirmed, we can also list what is inside the directory of our project.
 
 ```
 __init__.py     asgi.py         settings.py     urls.py         wsgi.py
@@ -598,3 +598,70 @@ To get data through a foreign key relationship, we can use the lowercase name of
 We will use this syntax when we begin to code the pages users can request. 
 
 ## Making Pages: The Learning Log Home Page
+
+Making web pages with Django consists of three stages: `defining URLS`, `writing views`, and `writing templates`. One can do these in any order, but in this project, we will start by defining the URL pattern. 
+
+A URL _pattern_ describes the way the URL is laid out. It also tells Django what to look for when matching a browser request with a site URL, so it knows which page to return.
+
+Each URL then maps to a particular view. The `view` function retrieves and processes the data needed for that page. The view function often renders the page using a `template`, which contains the overall structure of the page. 
+
+### Mapping a URL
+
+Users request pages by entering URLs into a browser and clicking links, so we will need to decide what URLs are needed. The home page URL is first: it is the base URL people use to access the project. 
+
+At the moment, the base URL: `http://localhost:8000/`, return the default Django site that lets us know the project was set up correctly. We will change this by mapping the base URL to Learning Log's home page.
+
+In the main learning_log_project folder, we view `urls.py`:
+
+```python
+
+from django.contrib import admin
+from django.urls import path
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+]
+
+```
+
+The first two lines import the `admin` module and a function to build URL paths. The body of the file defines the `urlpatterns` variable. In this `urls.py` file, which defines URLs for the project as a whole, the `urlpatterns` variable includes sets of URLs from the apps in the project. The list includes the module `admin.site.urls`, which defines all the URLs that can be requested from the admin site.
+
+
+In the main learning_log_project folder, we set `urls.py` by adding the URLs for `learning_logs`, so we add the following:
+
+```python
+
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('learning_logs.urls')),
+]
+
+```
+
+We have imported the `include()` function and also added a line to include the module `learning_logs.urls`.
+
+The default `urls.py` is in the `learning_log_project` folder, so we need to make a second `urls.py` file in the `learning_logs` folder.
+
+```python
+
+"""Defines URL patterns for learning logs."""
+
+from django.urls import path
+
+from . import views
+
+app_name = 'learning_logs'
+urlpatterns = [
+    # Home page
+    path('', views.index, name='index'),
+]
+
+```
+
+We import the `views` module; the dot tells Python to import the `views.py` module from the same directory as the current `urls.py` module.
+
+The variable `app_name` helps Django distinguish this `urls.py` file from files of the same name in other apps within the project. The variable `urlpatterns` in this module is a list of individual pages that can be requested from the `learning_logs` app.
+
