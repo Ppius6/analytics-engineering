@@ -665,3 +665,60 @@ We import the `views` module; the dot tells Python to import the `views.py` modu
 
 The variable `app_name` helps Django distinguish this `urls.py` file from files of the same name in other apps within the project. The variable `urlpatterns` in this module is a list of individual pages that can be requested from the `learning_logs` app.
 
+The actual URL pattern is a call to the `path()` function, which takes three arguments:
+
+- The first argument is a string that helps Django route the current request properly. Django receives the requested URL and tries to route the request to a view. It does this by searching all the URL patterns we have defined to find one that matches the current request. Django ignores the base URL for the project `(http://localhost:8000/)`, so the empty string ('') matches the base URL. Any other URL will not match this patter, and Django will return an error page if the URL requested does not match any existing URL patterns.
+
+- The second argument in `path()` specifies which function to call in `views.py`. When a requested URL matches the pattern we are defining, Django calls the `index()` function from `views.py`.
+
+- The third argument provides the name `index` for this URL so we can refer to it more easily in other files throughout the project. Whenever we want to provide a link to the home page, we will use this name instead of writing out a URL.
+
+### Writing a View
+
+A view function takes in information from a request, prepares the data needed to generate a page, and then sends the data back to the browser. It often does this by using a template that defines what the page will look like. 
+
+The file `views.py` in `learning_logs` was generated automatically when we ran the command `python manage.py startapp`. Here is how it looks currently:
+
+```python
+
+from django.shortcuts import render
+
+# Create your views here.
+
+```
+
+Currently, this file just imports the `render()` function, which renders the response based on the data provided by the views. We add the following code for the home page:
+
+```python
+
+from django.shortcuts import render
+
+def index(request):
+  """The home page for Learning Log"""
+  return render(request, 'learning_logs/index.html')
+
+```
+
+When a URL request matches the pattern we just defined, Django looks for a function called `index()` in the `views.py` file. Django then passes the `request` object to this. view function. In this case, we do not need to process any data for the page, so the only code in the function is a call to `render()`. The `render()` function here passes two arguments: the original `request` object and a template it can use to build the page. 
+
+### Writing a Template
+
+The template defines what the page should look like, and Django fills in the relevant data each time the page is requested. A template allows us to access any data provided by the view. 
+
+Inside the `learning_logs` folder, we make a new folder called `templates`. Inside the `templates` folder, we make another folder called `learning_logs`. Albeit seeming redundant, it sets up a structure that Django can interpret unambiguously, even in the context of a large project with many individual apps. Inside the inner `learning_logs` folder, we make a new file called `index.html`. The path to the file will be `learning_log/learning_logs/templates/learning_logs/index.html`.
+
+We add the following code:
+
+```html
+
+<p>Learning Log</p>
+
+<p>Learning Log helps you keep track of your learning, for any topic you're interested in.</p>
+
+```
+
+Now when we request the project's base URL, `http://localhost:8000/`, we should see the page we just built instead of the default Django page. Django will take the requested URL, and that URL will match the pattern ''; then Django will call the function `views.index()`, which will render the page using the template contained in `index.html`. 
+
+The separation between URLs, views, and templates works quite well. It allows us to think about each aspect of a project separately. In larger projects, it allows individuals working on the project to focus on the areas in which they are strongest. For example, a database specialist can focus on the models, a programmer can focus on the view code, and a frontend specialist can focus on the templates.
+
+## Building Additional Pages
