@@ -722,3 +722,53 @@ Now when we request the project's base URL, `http://localhost:8000/`, we should 
 The separation between URLs, views, and templates works quite well. It allows us to think about each aspect of a project separately. In larger projects, it allows individuals working on the project to focus on the areas in which they are strongest. For example, a database specialist can focus on the models, a programmer can focus on the view code, and a frontend specialist can focus on the templates.
 
 ## Building Additional Pages
+
+We can now expand the Learning Log project to build two pages that display data: a page that lists all topics and a page that shows all entries for a particular topic. For each page, we will specify a URL pattern, write a view function, and write a template. But we will first create a base template that all templates in the project can inherit from.
+
+### Template Inheritance
+
+When building a website, some elements will need to be repeated on each page. Rather than writing these elements directly into each page, we can write a base template containing the repeated elements and then have each page inherit from the base. This approach will let us focus on developing the unique aspects of each page, and makes it much easier to change the overall look and feel of the project.
+
+#### The Parent Template
+
+We will create a template called `base.html` in the same directory as `index.html`. This file will contain elements common to all page; every other template will inherit from `base.html`. The only element we want to repeat on each page right now is the title at the top. Since we will include this template on every page, we can make the title a link to the home page:
+
+```html
+
+<p>
+    <a href="{% url 'learning_logs:index' %}">Learning Log</a>
+</p>
+
+{% block content %}{% endblock content %}
+
+```
+
+The first part of this file creates a paragraph containing the name of the project, which also acts a home page link. To generate a link, we use a `template tag`, which is indicated by braces and percent signs `{% %}`. A template tag generates information to be displayed on a page. 
+
+The template tag `{% url 'learning_logs:index' %}` generates a URL matching the URL pattern defined in `learning_logs/url.py` with the name `index`. In this example, `learning_logs` is the _namespace_ and `index` is a uniquely named URL pattern assigned to `app_name` in the `learning_logs/url.py`file.
+
+In a simple HTML page, a link is surrounded by the `anchor tag <a>`: `<a href="link_url">link text</a>`
+
+Having the template tag generate the URL for us makes it much easier to keep our links up to date. We only need to change the URL patter in `urls.py`, and Django will automatically insert the updated URL the next time the page is requested. Every page in our project will inherit from `base.html`, so from now on, every page will have a link back to the home page.
+
+On the last line, we insert a pair of `block` tags, named __content__ in this case, is a placeholder; the child template will define the kind of information that goes in the content block.
+
+A child template does not have to define every block from its parent, so you can reserve space in parent templates for as many blocks as you like; the child template uses only as many as it needs. 
+
+#### The Child Template
+
+Now, we need to rewrite `index.html` to inherit from `base.html`. Add the following code to `index.html`
+
+```html
+
+{% extends 'learning_logs/base.html' %}
+
+{% block content %}
+
+<p>Learning Log helps you keep track of your learning, for any topic you're interested in.</p>
+
+{% endblock content %}
+
+```
+
+We have replaced the Learning Log title with the code for inheriting from a parent template. A child. template must have an `{% extends %}` tag on the first line to tell Django which parent template to inherit from. The file `base.html` is part of `learning_logs`, so we include `learning_logs` in the path to the parent template. This line pulls in everything contained in the `base.html` template and allows `index.html` to define what goes in the space reserved by the content block.
