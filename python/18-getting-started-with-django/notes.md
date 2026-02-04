@@ -673,7 +673,36 @@ The actual URL pattern is a call to the `path()` function, which takes three arg
 
 - The third argument provides the name `index` for this URL so we can refer to it more easily in other files throughout the project. Whenever we want to provide a link to the home page, we will use this name instead of writing out a URL.
 
+`Note`: In URLs (Routing), 
+
+- Project-level `urls.py` routes to different apps
+
+- App-level `urls.py` routes within the app
+
+```python
+# Project urls.py
+path('', include('learning_logs.urls'))  # Delegates to app
+
+# App urls.py
+path('', views.index, name='index')  # Maps '' to index view
+```
+
 ### Writing a View
+
+Views are Python functions that:
+
+- Receive HTTP request objects
+
+- Process data (query database, calculations, etc)
+
+- Return rendered templates
+
+```python
+
+def index(request):
+  return render(request, 'learning_logs/index.html')
+
+```
 
 A view function takes in information from a request, prepares the data needed to generate a page, and then sends the data back to the browser. It often does this by using a template that defines what the page will look like. 
 
@@ -706,6 +735,13 @@ When a URL request matches the pattern we just defined, Django looks for a funct
 The template defines what the page should look like, and Django fills in the relevant data each time the page is requested. A template allows us to access any data provided by the view. 
 
 Inside the `learning_logs` folder, we make a new folder called `templates`. Inside the `templates` folder, we make another folder called `learning_logs`. Albeit seeming redundant, it sets up a structure that Django can interpret unambiguously, even in the context of a large project with many individual apps. Inside the inner `learning_logs` folder, we make a new file called `index.html`. The path to the file will be `learning_log/learning_logs/templates/learning_logs/index.html`.
+
+The template tags are:
+
+- `{% %}` execute template logic
+- `{% url 'namespace:name' %}` Generates URLs dynamically
+- `{% block name %}` defines replaceable sections
+- `{% extends %}` inherit from parent template
 
 We add the following code:
 
@@ -771,4 +807,130 @@ Now, we need to rewrite `index.html` to inherit from `base.html`. Add the follow
 
 ```
 
-We have replaced the Learning Log title with the code for inheriting from a parent template. A child. template must have an `{% extends %}` tag on the first line to tell Django which parent template to inherit from. The file `base.html` is part of `learning_logs`, so we include `learning_logs` in the path to the parent template. This line pulls in everything contained in the `base.html` template and allows `index.html` to define what goes in the space reserved by the content block.
+We have replaced the Learning Log title with the code for inheriting from a parent template. A child template must have an `{% extends %}` tag on the first line to tell Django which parent template to inherit from. The file `base.html` is part of `learning_logs`, so we include `learning_logs` in the path to the parent template. This line pulls in everything contained in the `base.html` template and allows `index.html` to define what goes in the space reserved by the content block.
+
+We define the content block by inserting a `{% block %}`
+
+In summary, in template inheritance, we seek to avoid repetition by using parent-child relationships:
+
+- Parent Template (`base.html`):
+
+  ```html
+
+  <p>
+    <a href="{% url 'learning_logs:index' %}">Learning Log</a>
+  </p>
+  {% block content %}{% endblock content %}
+
+  ```
+
+- Child Template (`index.html`):
+
+  ```html
+
+  {% extends 'learning_logs/base.html' %}
+  {% block content %}
+  <p>Page-specific content here</p>
+  {% endblock content %}
+
+  ```
+
+In large projects, it is common to have one parent template called `base.html` for the entire site and parent templates for each major section of the site. All the section templates inherit from `base.html`, and each page in the site inherits from a section template.
+
+Therefore, URLs, logic, and presentation are independent, developers can work on different layers, easily maintainable as URLs are changed in one place and templates update automatically, and template inheritance reduces code duplication.
+
+So, for a practical example flow;
+
+- Django checks URL patterns, matches `''` pattern,
+
+- Calls `views.index(request)`
+
+- `index()` renders `learning_logs/index.html`
+
+- `index.html` extends `base.html`, inheriting the header
+
+- Fills in the `content` block with page-specific text
+
+- Returns complete HTML to browser
+
+
+
+### The Topics Page
+
+Now that we have an efficient approach to building pages, we can focus on building the `general topics page` and the `page to display entries for a single topic`. The topics page will show all topics that users have created, and it is the first page that will involve working with data.
+
+#### The Topics URL Pattern
+
+First, we define the URL for the topic page. It is common to choose a simple URL fragment that reflects the kind of information presented on the page. We will use the word `topics`, so the URL `https://localhost:8000/topics/` will return this page. 
+
+For `learning_logs/urls.py`, we add the following changes:
+
+```python
+# Page that shows all topics
+    path('topics/', views.topics, name="topics")
+```
+
+to form:
+
+```python
+
+"""Defines URL patterns for learning logs."""
+
+from django.urls import path
+
+from . import views
+
+app_name = "learning_logs"
+urlpatterns = [
+    # Home page
+    path("", views.index, name="index"),
+    # Page that shows all topics
+    path('topics/', views.topics, name="topics")
+]
+
+```
+
+The new URL pattern is the word `topics`, followed by a forward slash. When Django examines a requested URL, this pattern will match any URL that has the base URL followed by `topics`. We can include or omit a forward slash at the end, but there cannot be anything else after the word `topics`, or the pattern would not match. Any request with a URL that matches this pattern will then be passed to the function `topics()` in `views.py`
+
+#### The Topics View
+
+The `topics()` function needs to retrieve some data from the database and send it to the template. Add the following to `views.py` at the application level.
+
+```python
+
+def topics(request):
+    """Show all topics"""
+    topics = Topic.objects.order_by('date_added')
+    context = {'topics': topics}
+    return render(request, 'learning_logs/topics.html', context)
+
+```
+
+to form
+
+```python
+
+from django.shortcuts import render
+
+from .models import Topic
+
+def index(request):
+    """The home page for Learning Log"""
+    return render(request, "learning_logs/index.html")
+
+def topics(request):
+    """Show all topics"""
+    topics = Topic.objects.order_by('date_added')
+    context = {'topics': topics}
+    return render(request, 'learning_logs/topics.html', context)
+
+```
+
+The `topics()` function needs one parameter: the `request` object Django received from the server. We query the database by asking for the `Topic` objects sorted by the `date_added` attribute. We assign the resulting queryset to `topics`
+
+We then define a context that we will send to the template. A `context` is a dictionary in which the keys are names we will use in the template to access the data we want, and the values are the data we need to send to the template.
+
+In this case, there is one key-value pair, which contains the set of topics we will display on the page. When building a page that uses data, we call `render()` with the `request` object, the template we want to use, and the `context` dictionary.
+
+#### The Topics Template
+
