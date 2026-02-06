@@ -15,6 +15,7 @@ While GFS provided a fault-tolerant and distributed filesystem across many commo
 - In 2004, Google published the __MapReduce__ paper which described a programming model to process that data.
     - __Map__: Split the data and apply a function (e.g., count words).
     - __Reduce__: Aggregate the results
+    
 This moved the computation to the data, rather than moving data to the computer.
 
 ### The Hadoop Era (2006-2009)

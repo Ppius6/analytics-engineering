@@ -934,3 +934,151 @@ In this case, there is one key-value pair, which contains the set of topics we w
 
 #### The Topics Template
 
+The template for the topics page receives the `context` dictionary, so the template can use the data that `topics()` provides. We will make a file called `topics.html` in the same directory as `index.html`.
+
+```html
+
+{% extends 'learning_logs/base.html' %}
+
+{% block content %}
+
+<p>Topics</p>
+<ul>
+    {% for topic in topics %}
+        <li>{{ topic.text }} </li>
+    {% empty %}
+        <li> No topics have been added yet.</li>
+    {% endfor %}
+</ul>
+
+{% endblock content %}
+
+```
+
+In the above, we seek to display a list of topics. `{% extends 'learning_logs/base.html' %}` inherits from the parent template `base.html`, pulls in the common HTML structure (header, navigation, etc.) from the parent, and must be the first line in a child template.
+
+`{% block content %}` opens the content block defined in `base.html`, and everything between this and `{% endblock content %}` replaces the placeholder in the parent template.
+
+We define a simple heading `<p>Topics</p>` and then `{% for topic in topics %}` loops through the `topics` variable (passed from the view) and iterates over each topic object one at a time. `{{ topic.text }}` outputs the text value of each topic and using `<li>`, we display a list item for each topic. 
+
+`{% empty %}` is a special Django template tag that runs if the topics list is empty which displays fallback content when there's no data to loop through. In this case, shows "No topics have been added yet." `{% endfor %}` closes the for loop and `{% endblock content %}` closes the content block.
+
+##### Example flow
+
+If `topics = [Topic(text="Chess"), Topic(text="Rock Climbing")]`, the rendered HTML would be: 
+
+```html
+
+<p>Topics</p>
+<ul>
+    <li>Chess </li>
+    <li>Rock Climbing </li>
+</ul>
+
+```
+
+If `topics` is empty, it would show:
+
+```html
+
+<p>Topics</p>
+<ul>
+    <li>No topics have been added yet.</li>
+</ul>
+
+```
+
+### Individual Topic Pages
+
+Next, we need to create a page that can focus on a single topic, showing the topic name and all the entries for that topic. We will define a new URL pattern, write a view, and create a template. We will also modify the topics page so each item in the bulleted list links to its corresponding topic page.
+
+#### The Topic URL Pattern
+
+The URL pattern for the topic page is a little different from the prior URL patterns because it will use the topic's `id` attribute to indicate which topic was requested. For example, if the user wants to see the detail page for the `Chess` topic, where id = 1, the URL will be `http://localhost:8000/topics/1/`. A pattern to match this URL we should place in `learning_logs/urls.py` is:
+
+```python
+
+# Snip previous code
+
+urlpatterns = [
+  # Snip
+  # Detail page for a single topic
+  path('topics/<int:topic_id>/', views.topic, name='topic'),
+]
+
+```
+
+The initial part of the string tells Django to look for URLs that have the word `topics` after the base URL. The second part of the string, `/<int:topic_id>/`, matches an integer between two forward slashes and assigns the integer value to an argument called `topic_id`.
+
+When Django finds a URL that matches this pattern, it calls the view function `topic()` with the value assigned to `topic_id` as an argument. 
+
+#### The Topic View
+
+The `topic()` function needs to get the topic and all associated entries from the database, much like what we did earlier in the Django shell:
+
+```python
+
+def topic(request, topic_id):
+    """Show a single topic and all its entries."""
+    topic = Topic.objects.get(id=topic_id)
+    entries = topic.entry_set.order_by('-date_added')
+    context = {"topic": topic, 'entries': entries}
+    return render(request, "learning_logs/topic.html", context)
+
+```
+
+#### The Topic Template
+
+The topic template needs to display the name of the topic and the entries. We also need to inform the user if no entries have been made yet for this topic.
+
+```html
+
+{% extends 'learning_logs/base.html' %}
+
+{% block content %}
+
+<p>Topic</p>
+<ul>
+    {% for entry in entries %}
+        <li>
+            <p> {{ entry.date_added|date:'M d, Y H:i' }} </p>
+             <p> {{ entry.text|linebreaks }} </p>
+        </li>
+    {% empty %}
+        <li> There are no entries for this topic yet.</li>
+    {% endfor %}
+</ul>
+
+{% endblock content %}
+
+```
+
+This template displays all entries for a specific topic. It inherits from the base template and fills the content block with entry details. The template loops through an `entries` list passed from the view. For each entry, it displays the date when the entry was created and the entry text content. The `date` filter formats the date in a readable way showing month, day, year, and time (e.g., "Jan 15, 2026 14:30"). The `linebreaks` filter converts line breaks in the entry text into HTML paragraph tags, so when users write multi-line entries, the formatting is preserved on the page. If no entries exist for the topic, the `{% empty %}` block displays a message letting users know they haven't created any entries yet. Each entry is rendered as a list item containing the formatted date and text. The `{% endfor %}` closes the loop, and `{% endblock content %}` closes the content block, completing the template inheritance from `base.html`.
+
+#### Links from the Topics Page
+
+We modify the `topics` template so each topic links to the appropriate page.
+
+```html
+
+{% extends 'learning_logs/base.html' %}
+
+{% block content %}
+
+<p>Topics</p>
+<ul>
+    {% for topic in topics %}
+        <li>
+          <a href="{% url 'learning_logs:topic' topic.id %}">
+            {{ topic.text }} </a>
+        </li>
+    {% empty %}
+        <li> No topics have been added yet.</li>
+    {% endfor %}
+</ul>
+
+{% endblock content %}
+
+```
+
+We use the URL template tag to generate the proper link, based on the URL pattern in `learning_logs` with the name `topic`. This URL pattern requires a `topic_id` argument, so we add the attribute `topic.id` to the URL template tag. Now, each topic in the list of topics is a link to a topic page, such as `http://localhost:8000/topics/1/`

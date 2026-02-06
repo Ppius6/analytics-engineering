@@ -6,8 +6,6 @@ Here we will set up the environment, understand the lifecycle of a Spark applica
 
 There are two primary ways to get Spark running on our machine for learning purposes:
 
-There are two primary ways to get Spark running on our machine for learning purposes:
-
 - Download the `tarball (i.e., park-3.x.x-bin-hadoop2.7.tgz)` from the official Spark website. This gives us the full distribution, including Scala, Java, R, and Python shells, as well as the Hadoop binaries needed to run locally.
 
 - If we only care about Python, we can simply run `pip install pyspark` which installs the PySpark binaries from PyPI
