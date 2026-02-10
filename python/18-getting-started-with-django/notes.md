@@ -1082,3 +1082,158 @@ We modify the `topics` template so each topic links to the appropriate page.
 ```
 
 We use the URL template tag to generate the proper link, based on the URL pattern in `learning_logs` with the name `topic`. This URL pattern requires a `topic_id` argument, so we add the attribute `topic.id` to the URL template tag. Now, each topic in the list of topics is a link to a topic page, such as `http://localhost:8000/topics/1/`
+
+## Allowing Users to Enter Data
+
+When building web apps, there must be a provision to allow any user to register an account with the application and start using it. 
+
+We will build forms so users can add their own topics and entries, and even edit the existing entries. We will understand how Django guards against common attacks against form-based pages, implement authentication systems.
+
+
+### Adding New Topics
+
+Adding a form-based page works in much the same way as adding the pages we have already built: we define a URL, write a view function, and write a template. The one significant difference is the addition of a new module called `forms.py`, which will contain the forms.
+
+#### The Topic ModelForm
+
+Any page that lets a user enter and submit information on a web page involves an HTML element called a `form`. When users enter information, we need to `validate` that the information provided is the right kind of data and is not malicious. We then need to process and save valid information to the appropriate place in the database and Django automates much of the work involved.
+
+The simplest way to build a form in Django is to use a `ModelForm`, which uses the information from the models we have already defined to create a form. We will use a `ModelForm` to create a form for adding new topics.
+
+```python
+
+from django import forms
+
+from .models import Topic
+
+class TopicForm(forms.ModelForm):
+    """Form for adding a new topic."""
+
+    class Meta:
+        model = Topic
+        fields = ['text']
+        labels = {'text': ''}
+```
+
+The `TopicForm` class inherits from `forms.ModelForm`, which tells Django to build a form based on the information in the `Topic` model. The inner `Meta` class tells Django which model to use to build the form and which fields from the model to include in the form. In this case, we only want to include the `text` field, so we set `fields = ['text']`. We also set `labels = {'text': ''}` to tell Django not to generate a label for this field, since the placeholder text will make it clear what information should be entered into this field.
+
+#### The new_topic URL
+
+The URL for a new page should be short and descriptive. We will use `new_topic`, so the URL for this page will be `http://localhost:8000/new_topic/`. We add the following to `learning_logs/urls.py`:
+
+```python
+
+# Snip previous code
+urlpatterns = [
+    # Snip previous code
+    # Page for adding a new topic
+    path('new_topic/', views.new_topic, name='new_topic'),
+]
+
+```
+
+This URL pattern sends requests for `http://localhost:8000/new_topic/` to the function `new_topic()` in `views.py`
+
+#### The new_topic View Function
+
+The `new_topic()` function needs to handle two different situations: initial requests for the `new_topic` page, in which case it should show a blank form; and the processing of any data submitted in the form. After data from a submitted form is processed, it needs to redirect the user back to the topics page. 
+
+```python
+
+from django.shortcuts import render, redirect
+
+from .models import Topic
+from .forms import TopicForm
+
+# Snip previous code
+
+def new_topic(request):
+    """Add a new topic."""
+    if request.method != 'POST':
+        # No data submitted; create a blank form.
+        form = TopicForm()
+    else:
+        # POST data submitted; process data.
+        form = TopicForm(data=request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('learning_logs:topics')
+
+    # Display a blank or invalid form.
+    context = {'form': form}
+    return render(request, 'learning_logs/new_topic.html', context)
+
+```
+
+The `new_topic()` function first checks the method of the request. If the method is not `POST`, this means the user is requesting the page for the first time, so we create a blank form. If the method is `POST`, this means the user has submitted data, so we create a form instance with the submitted data and check if it is valid. If the form is valid, we save the new topic to the database and redirect the user to the topics page.
+
+### GET and POST Requests
+
+The two main types of requests we will use when building apps are `GET` and `POST`. A `GET` request is used for pages that only read data from the server. We use `POST` requests when the user needs to submit information through a form. We will use `GET` requests for the home page, the topics page, and the individual topic pages. We will use `POST` requests for the page that allows users to add new topics and entries.
+
+The `new_topic()` function takes in the `request` object as a parameter. When the user initially requests the `new_topic` page, the method of the request is `GET`. Once the user has filled out and submitted the form, their browser will submit a POST request. Depending on the method of the request, the `new_topic()` function will either display a blank form or process the submitted data.
+
+We use an `if` test to determine whether the request method is `GET` or `POST`. If the request method is not `POST`, the request is a `GET` request, so we create a blank form. We make an instance of `TopicForm`, assign it to the variable `form`, and send the form to the template in the context dictionary. Since we included no arguments when instantiating `TopicForm()`, the form will be blank.
+
+If the request method is `POST`, we create a form instance with the submitted data by passing `data=request.POST` when instantiating `TopicForm()`. We then check if the form is valid. The validity checks include checking if i.e., the length of the text is less than 200 characters, as we specified in the `models.py`. If it is valid, we save the new topic to the database and redirect the user to the topics page.
+
+Once we have processed the submitted data, we redirect the user to the topics page. We use the `redirect()` function to redirect the user to a different page after processing the form data. The argument we pass to `redirect()` is the name of the URL pattern for the topics page, so Django will generate the appropriate URL for us.
+
+The `context` variable is defined at the end of the function, so it is available whether the request method is `GET` or `POST`. If the request method is `GET`, the form will be blank. If the request method is `POST`, but the submitted data was invalid, the form will contain error messages that explain what was wrong with the submitted data. In either case, we send the form to the template in the context dictionary and render the page.
+
+#### The new_topic Template
+
+Now, we need to create a template for the `new_topic` page. We will make a file called `new_topic.html` in the same directory as `index.html`.
+
+```html
+
+{% extends 'learning_logs/base.html' %}
+
+{% block content %}
+    <p>Add a new topic:</p>
+
+    <form action="{% url 'learning_logs:new_topic' %}" method="post">
+        {% csrf_token %}
+        {{ form.as_div }}
+        <button name="submit">Add topic</button>
+    </form>
+
+{% endblock content %}
+
+```
+
+This template extends `base.html`, so it has the same base structure as the rest of the pages in the project. The content block contains a heading and a form. The form is defined using the `<form>` tag, which has two important attributes: `action` and `method`. The `action` attribute tells the form where to send the submitted data; in this case, we send it back to the view function `new_topic`. The `method` attribute tells the form how to send the data; since we are submitting data, we use `POST`.
+
+Django uses the template tag `{% csrf_token %}` to prevent Cross-Site Request Forgery (CSRF) attacks. This tag generates a hidden form field with a unique token that Django checks when the form is submitted to ensure the request is coming from a trusted source. 
+
+The line `{{ form.as_div }}` renders the form fields as HTML `<div>` elements. This is a convenient way to display the form, and it allows us to style the form using CSS if we want to. The button at the end of the form allows users to submit their input. When the user clicks the "Add topic" button, the form data is sent to the `new_topic` view function for processing. If the data is valid, a new topic is created in the database, and the user is redirected to the topics page where they can see their new topic listed.
+
+#### Linking to the new_topic Page
+
+Finally, we need to add a link to the `new_topic` page from the topics page. We will add this link at the end of the list of topics in `topics.html`.
+
+```html
+
+{% extends 'learning_logs/base.html' %}
+
+{% block content %}
+
+    <p>Topics</p>
+
+    <ul>
+        # Snip previous code
+    </ul>
+
+    <a href="{% url 'learning_logs:new_topic' %}">Add a new topic</a>
+
+{% endblock content %}
+
+```
+
+### Adding New Entries
+
+Now that the user can add a new topic, they will want to add new entries too. We will again define a URL, write a view function and a template, and link to the page. But first, we will add another class to `forms.py`
+
+#### The Entry ModelForm
+
+

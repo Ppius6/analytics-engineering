@@ -152,7 +152,22 @@ print(squares)
 
 ### List Comprehensions
 
-A `list comprehension` allows you to generate a list in a single line of code, making it more concise and often easier to read. It combines the for loop and the creation of new elements into one line, and automatically appends each new element to the list. 
+A `list comprehension` allows you to generate a list in a single line of code, making it more concise and often easier to read. It combines the for loop and the creation of new elements into one line, and automatically appends each new element to the list.
+
+#### Basic Syntax
+
+The general syntax for a list comprehension is:
+
+```python
+[expression for item in iterable]
+```
+
+Where:
+- `expression` is the value to add to the new list
+- `item` is the variable name for each element
+- `iterable` is the sequence to loop through
+
+#### Basic Example
 
 ```python
 squares = [value ** 2 for value in range(1, 11)]
@@ -160,6 +175,108 @@ print(squares)
 # Output:
 # [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
 ```
+
+This is equivalent to:
+
+```python
+squares = []
+for value in range(1, 11):
+    squares.append(value ** 2)
+```
+
+#### List Comprehensions with Conditions
+
+You can also add a condition to filter items:
+
+```python
+[expression for item in iterable if condition]
+```
+
+For example, to get only even numbers from 1 to 10:
+
+```python
+even_numbers = [value for value in range(1, 11) if value % 2 == 0]
+print(even_numbers)
+# Output:
+# [2, 4, 6, 8, 10]
+```
+
+To get squares of only odd numbers:
+
+```python
+odd_squares = [value ** 2 for value in range(1, 11) if value % 2 != 0]
+print(odd_squares)
+# Output:
+# [1, 9, 25, 49, 81]
+```
+
+#### List Comprehensions with String Operations
+
+List comprehensions work with any iterable, not just numbers. Here's an example with strings:
+
+```python
+countries = ['tanzania', 'ethiopia', 'ivory coast']
+capitalized = [country.title() for country in countries]
+print(capitalized)
+# Output:
+# ['Tanzania', 'Ethiopia', 'Ivory Coast']
+```
+
+You can also filter based on conditions:
+
+```python
+countries = ['tanzania', 'ethiopia', 'ivory coast', 'kenya']
+long_names = [country.title() for country in countries if len(country) > 6]
+print(long_names)
+# Output:
+# ['Tanzania', 'Ethiopia', 'Ivory Coast']
+```
+
+#### Nested List Comprehensions
+
+You can also nest list comprehensions to work with multiple sequences:
+
+```python
+pairs = [(x, y) for x in [1, 2, 3] for y in ['a', 'b']]
+print(pairs)
+# Output:
+# [(1, 'a'), (1, 'b'), (2, 'a'), (2, 'b'), (3, 'a'), (3, 'b')]
+```
+
+Or to create a 2D structure:
+
+```python
+matrix = [[x * y for x in range(1, 4)] for y in range(1, 4)]
+print(matrix)
+# Output:
+# [[1, 2, 3], [2, 4, 6], [3, 6, 9]]
+```
+
+Or even create dictionaries:
+
+```python
+countries = ['tanzania', 'ethiopia', 'ivory coast']
+country_dict = {country: len(country) for country in countries}
+print(country_dict)
+# Output:
+# {'tanzania': 8, 'ethiopia': 8, 'ivory coast': 11}
+```
+
+#### When to Use List Comprehensions
+
+List comprehensions are best used when:
+- You need a simple one-line transformation of a list
+- You're filtering items based on a simple condition
+- The code remains readable
+
+Avoid using them when:
+- The logic becomes too complex to fit comfortably in one line
+- You need multiple conditions that make the code hard to understand
+- You prefer explicit, verbose code for clarity
+
+In those cases, a traditional `for` loop is more appropriate and easier to understand.
+
+
 
 ## Working with Parts of a List
 
