@@ -1236,4 +1236,254 @@ Now that the user can add a new topic, they will want to add new entries too. We
 
 #### The Entry ModelForm
 
+We need to create a form associated with the `Entry` model, but this time, with a bit more customization than `TopicForm`:
 
+```python
+
+from django import forms
+
+from .models import Topic, Entry
+
+class TopicForm(forms.ModelForm):
+    # Snip previous code
+
+class EntryForm(forms.ModelForm):
+    """Form for adding a new entry."""
+    class Meta:
+        model = Entry
+        fields = ['text']
+        labels = {'text': ''}
+        widgets = {'text': forms.Textarea(attrs={'cols':80})}
+
+```
+
+We make a new class that inherits from `forms.ModelForm`. This class has a nested `Meta` class listing the model it is based on, and the field to include in the form. We again give the field `text` a blank label.
+
+For `EntryForm`, we include the `widgets` attribute. A `widget` is an HTML form element, such as a single-line text box, multiline text area, or drop-down list. By including the widgets attribute we override django's default widget choices. Here, we use a `forms.Textarea` element with a width of 80 columns, instead of the default 40 columns which gives the user more room to write a meaningful entry.
+
+#### The new_entry URL
+
+New entries must be associated with a particular topic, so we need to include the topic's id in the URL pattern. We will use `new_entry` as the URL fragment, so the URL for this page will be `http://localhost:8000/topics/1/new_entry/`. We add the following to `learning_logs/urls.py`:
+
+```python
+# Snip previous code
+urlpatterns = [
+    # Snip previous code
+    # Page for adding a new entry
+    path('topics/<int:topic_id>/new_entry/', views.new_entry, name='new_entry'),
+]
+
+```
+
+This URL pattern matches any URL that has the base URL followed by `topics/`, an integer, and then `new_entry/`. The integer in the URL is assigned to `topic_id`, which is passed to the `new_entry()` view function as an argument.
+
+#### The new_entry View Function
+
+The view function for adding a new entry is similar to the `new_topic()` function, but it also needs to associate the new entry with the correct topic. 
+
+```python
+
+from django.shortcuts import render, redirect
+
+from .models import Topic
+from .forms import TopicForm, EntryForm
+
+# Snip previous code
+
+def new_entry(request, topic_id):
+    """Add a new entry for a particular topic."""
+    topic = Topic.objects.get(id=topic_id)
+
+    if request.method != 'POST':
+        # No data submitted; create a blank form.
+        form = EntryForm()
+    else:
+        # POST data submitted; process data.
+        form = EntryForm(data=request.POST)
+        if form.is_valid():
+            new_entry = form.save(commit=False)
+            new_entry.topic = topic
+            new_entry.save()
+            return redirect('learning_logs:topic', topic_id=topic_id)
+
+    # Display a blank or invalid form.
+    context = {'topic': topic, 'form': form}
+    return render(request, 'learning_logs/new_entry.html', context)
+
+```
+
+The `new_entry()` function takes in the `request` object and the `topic_id` as parameters. The first line of the function retrieves the topic associated with the given `topic_id` from the database. The rest of the function is similar to `new_topic()`, but with some differences. When processing the submitted data, we create a new entry object from the form data but do not save it to the database yet by passing `commit=False` to `form.save()`. This allows us to set the `topic` attribute of the new entry to the topic we retrieved at the beginning of the function. After setting the topic, we save the new entry to the database. Finally, we redirect the user to the topic page for the topic they just added an entry to, passing `topic_id` as an argument to the URL pattern.
+
+#### The new_entry Template
+
+The template for adding a new entry is similar to the template for adding a new topic, but it also needs to display the name of the topic that the user is adding an entry for.
+
+```html
+
+{% extends 'learning_logs/base.html' %}
+
+{% block content %}
+    <p><a href="{% url 'learning_logs:topic' topic.id %}">{{ topic }}</a></p>
+
+    <p>Add a new entry:</p>
+    <form action="{% url 'learning_logs:new_entry' topic.id %}" method="post">
+        {% csrf_token %}
+        {{ form.as_div }}
+        <button name="submit">Add entry</button>
+    </form>
+
+{% endblock content %}
+
+```
+
+Here, we show the topic name as a link back to the topic page. The form's action attribute is set to the URL for adding a new entry for this topic, which includes the topic's id. The rest of the form is similar to the `new_topic` template, with a CSRF token, the form fields rendered as divs, and a submit button. When the user submits the form, they will be redirected back to the topic page where they can see their new entry listed under that topic.
+
+#### Linking to the new_entry Page
+
+Finally, we need to add a link to the `new_entry` page from the individual topic page. We will add this link at the end of the list of entries in `topic.html`.
+
+```html
+
+{% extends 'learning_logs/base.html' %}
+
+{% block content %}
+
+    <p>Topic: {{ topic }}</p>
+    <p>Entries:</p>
+    <p>
+        <a href="{% url 'learning_logs:new_entry' topic.id %}">Add new entry</a>
+    </p>
+
+    <ul>
+        # Snip previous code
+    </ul>
+
+    <a href="{% url 'learning_logs:new_entry' topic.id %}">Add a new entry</a>
+
+{% endblock content %}
+
+```
+
+We place the link to add a new entry right after the topic name and before the list of entries, because adding a new entry will be the most common action users will take on this page. The link uses the URL template tag to generate the URL for adding a new entry for this topic, passing the topic's id as an argument. When users click this link, they will be taken to the form for adding a new entry, and after submitting the form, they will be redirected back to this topic page where they can see their new entry listed.
+
+### Editing Entries
+
+Now, we will make a page that allows users to edit existing entries. We will define a URL pattern, write a view function, and create a template for editing entries. We will also add links to the edit page from the topic page.
+
+#### The edit_entry URL
+
+The URL for the page needs to pass the ID of the entry to be edited. We will use `edit_entry` as the URL fragment, so the URL for this page will be `http://localhost:8000/topics/1/edit_entry/`. We add the following to `learning_logs/urls.py`:
+
+```python
+
+# Snip previous code
+urlpatterns = [
+    # Snip previous code
+    # Page for editing an entry
+    path('topics/<int:topic_id>/edit_entry/<int:entry_id>/', views.edit_entry, name='edit_entry'),
+]
+
+```
+
+This URL pattern matches any URL that has the base URL followed by `topics/`, an integer for the topic id, `edit_entry/`, and another integer for the entry id. The integers in the URL are assigned to `topic_id` and `entry_id`, which are passed to the `edit_entry()` view function as arguments.
+
+#### The edit_entry View Function
+
+When the `edit_entry()` function receives a `GET` request, it needs to retrieve the entry to be edited and pre-populate the form with the current entry data. When it receives a `POST` request, it needs to validate the submitted data, save the changes to the database, and redirect the user back to the topic page.
+
+```python
+
+from django.shortcuts import render, redirect
+
+from .models import Topic, Entry
+from .forms import TopicForm, EntryForm
+
+# Snip previous code
+
+def edit_entry(request, entry_id):
+    """Edit an existing entry."""
+    entry = Entry.objects.get(id=entry_id)
+    topic = entry.topic
+
+    if request.method != 'POST':
+        # Initial request; pre-fill form with the current entry.
+        form = EntryForm(instance=entry)
+    else:
+        # POST data submitted; process data.
+        form = EntryForm(instance=entry, data=request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('learning_logs:topic', topic_id=topic.id)
+
+    context = {'entry': entry, 'topic': topic, 'form': form}
+    return render(request, 'learning_logs/edit_entry.html', context)
+
+```
+
+We initially import the `Entry` model and then get the entry object that the user wants to edit using the `entry_id` passed in the URL. We also get the topic associated with this entry, since we will need to redirect the user back to the topic page after they submit their changes.
+
+If the request method is not `POST`, we create a form instance with the current entry data by passing `instance=entry` when instantiating `EntryForm()`. This pre-populates the form with the existing entry data, allowing the user to see the current content and make changes to it. 
+
+If the request method is `POST`, we create a form instance with both the current entry data and the submitted data by passing both `instance=entry` and `data=request.POST`. This allows us to validate the submitted data against the existing entry. If the form is valid, we save the changes to the database and redirect the user back to the topic page. 
+
+The context dictionary includes the entry, topic, and form, which are sent to the template for rendering the edit entry page.
+
+#### The edit_entry Template
+
+Next, we create an `edit_entry.html` template for the edit entry page.
+
+```html
+
+{% extends 'learning_logs/base.html' %}
+
+{% block content %}
+    <p><a href="{% url 'learning_logs:topic' topic.id %}">{{ topic }}</a></p>
+
+    <p>Edit entry:</p>
+
+    <form action="{% url 'learning_logs:edit_entry' entry.id %}" method="post">
+        {% csrf_token %}
+        {{ form.as_div }}
+        <button name="submit">Save changes</button>
+    </form>
+
+{% endblock content %}
+
+```
+
+The `action` argument sends the form back to the `edit_entry` view function for processing. We include `entry.id` in the URL so the view function knows which entry is being edited. The rest of the form is similar to the previous forms, with a CSRF token, the form fields rendered as divs, and a submit button. When the user submits the form, they will be redirected back to the topic page where they can see their changes reflected in the entry.
+
+#### Linking to the edit_entry Page
+
+Finally, we need to add a link to the `edit_entry` page from the individual topic page. We will add this link next to each entry in `topic.html`.
+
+```html
+
+{% extends 'learning_logs/base.html' %}
+
+{% block content %}
+
+    <p>Topic: {{ topic }}</p>
+    <p>Entries:</p>
+
+    <ul>
+        {% for entry in entries %}
+            <li>
+                <p>{{ entry.date_added|date:'M d, Y H:i' }}</p>
+                <p>{{ entry.text|linebreaks }}</p>
+                <p>
+                    <a href="{% url 'learning_logs:edit_entry' entry.id %}">Edit entry</a>
+                </p>
+            </li>
+        {% empty %}
+            <li> There are no entries for this topic yet.</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{% url 'learning_logs:new_entry' topic.id %}">Add a new entry</a>
+
+{% endblock content %}
+
+```
+
+We include the edit link after each entry's date and text has been displayed. We use the `{% url %}` template tag to generate the URL for the named URL pattern `edit_entry`, along with the ID attribute of the current entry in the loop (`entry.id`). When users click the "Edit entry" link, they will be taken to the edit entry page where they can modify the content of that entry. After submitting their changes, they will be redirected back to the topic page where they can see their updated entry.
