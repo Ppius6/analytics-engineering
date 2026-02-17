@@ -1487,3 +1487,185 @@ Finally, we need to add a link to the `edit_entry` page from the individual topi
 ```
 
 We include the edit link after each entry's date and text has been displayed. We use the `{% url %}` template tag to generate the URL for the named URL pattern `edit_entry`, along with the ID attribute of the current entry in the loop (`entry.id`). When users click the "Edit entry" link, they will be taken to the edit entry page where they can modify the content of that entry. After submitting their changes, they will be redirected back to the topic page where they can see their updated entry.
+
+## Setting up User Accounts
+
+Here, we will set up a user registration and authorization systems so users can register an account, log in, and log out. We will create a new app to contain all the functionality related to working with users. We will use the default user authentication system included with Django to do as much of the work as possible. We will also modify the `Topic` model slightly so every topic belongs to a certain user.
+
+### The accounts App
+
+We will create a new app called `accounts` using the command `python manage.py startapp accounts`. 
+
+The default authentication system is built around the concept of user accounts, so using the name `accounts` for this app makes it clear that this app is responsible for handling user accounts. We will put all the code related to user registration, login, and logout in this app.
+
+#### Adding accounts to settings.py
+
+We need to add our new app to the `INSTALLED_APPS` list in `settings.py` so Django knows to include it when we run the server.
+
+```python
+
+# Application definition
+
+INSTALLED_APPS = [
+    # My apps
+    "learning_logs",
+    "accounts",
+    # Other default Django apps
+    # -- snip --
+]
+
+```
+
+#### Including the URLs from accounts
+
+Next, we need to modify the root `urls.py` so it includes the URL patterns from the `accounts` app. We will add a new path to the `urlpatterns` list in `learning_log_project/urls.py`:
+
+```python
+
+
+from django.contrib import admin
+from django.urls import include, path
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("accounts/", include("accounts.urls")),
+    path("", include("learning_logs.urls")),
+]
+
+```
+
+This tells Django to include the URL patterns defined in `accounts/urls.py` whenever a URL starts with `accounts/`. This way, we can keep all the URLs related to user accounts in the `accounts` app, which helps keep our project organized.
+
+### The Login Page
+
+The first page we will build is the login page. This page will allow users to log in to their accounts so they can access their topics and entries. We will use Django's built-in authentication views to handle the login process, which simplifies our work significantly. We will define a URL pattern for the login page, create a template for the login form, and link to the login page from the home page. We will also modify the base template to show different navigation options depending on whether the user is logged in or not.
+
+First, we make a new file called `urls.py` in the `accounts` app directory. This file will contain the URL patterns for the accounts app, including the login page.
+
+```python
+
+"""Defines URL patterns for user accounts."""
+
+from django.urls import path, include
+
+app_name = "accounts"
+urlpatterns = [
+    # Include default auth urls (login, logout, password management)
+    path("", include("django.contrib.auth.urls")),
+]
+
+```
+
+The login page's pattern matches the URL `https://localhost:8000/accounts/login/`, which is the default URL for the login view provided by Django's authentication system. By including `django.contrib.auth.urls`, we get a set of default URL patterns for authentication, including login, logout, and password management views. This means we don't have to write our own view functions for these actions; we can use Django's built-in functionality. The `app_name` variable is set to "accounts" to allow us to reference these URLs with a namespace, which helps avoid conflicts with URLs from other apps in the project. For example, we can refer to the login URL as `accounts:login` in our templates and views.
+
+#### The Login Template
+
+When the user requests the login page, Django's authentication system will look for a template called `registration/login.html` to render the login form. We need to create this template in the `accounts/templates/registration/` directory.
+
+```html
+
+{% extends 'learning_logs/base.html' %}
+
+{% block content %}
+
+    {% if form.errors %}
+        <p> Your username and password didn't match. Please try again.</p>
+    {% endif %}
+
+    <form action="{% url 'accounts:login' %}" method="post">
+        {% csrf_token %}
+        {{ form.as_div }}
+        
+        <button name="submit">Log in</button>
+    </form>
+    
+{% endblock content %}
+
+```
+
+The template extends `base.html` to ensure that the login page will have the same look and feel as the rest of the site. Note that a template in one app can inherit from a template in another app, as long as the template directories are set up correctly and the template names are unique across the project.
+
+If the form's error attribute is set, we display an error message, reporting that the username and password combination does not match anything stored in the database.
+
+We want the login view to process the form, so we set the `action` argument as the URL of the login page. The login view sends a `form` object to the template, and it is up to us to display the form and add a submit button. We use `{{ form.as_div }}` to render the form fields as divs, which is a convenient way to display the form. The CSRF token is included to protect against Cross-Site Request Forgery attacks. When the user submits the form, the login view will process the data and log the user in if the credentials are correct. If the login is successful, the user will be redirected to the home page or another page specified in the settings. If the login fails, the form will be re-rendered with error messages, and the user can try again.
+
+#### The LOGIN_REDIRECT_URL Setting
+
+Once a user logs in, Django needs to know where to redirect them. By default, Django redirects users to the URL `/accounts/profile/` after they log in, but we can change this behavior by setting the `LOGIN_REDIRECT_URL` variable in `settings.py`:
+
+```python
+
+# -- snip previous code --
+
+# My settings
+LOGIN_REDIRECT_URL = 'learning_logs:index'
+
+```
+
+By setting `LOGIN_REDIRECT_URL` to `'learning_logs:index'`, we tell Django to redirect users to the home page of the learning logs app after they log in. This way, users will be taken directly to the main page of the app where they can see their topics and entries, rather than being redirected to a generic profile page that doesn't exist in our project.
+
+#### Linking to the Login Page
+
+We will add the login link to `base.html` so it appears on every page. We do not want the link to display when the user is already logged in, so we nest it inside an `{% if %}` tag:
+
+```html
+
+<p>
+    <a href="{% url 'learning_logs:index' %}">Learning Log</a>
+    <a href="{% url 'learning_logs:topics' %}">Topics</a>
+    {% if user.is_authenticated %}
+        Hello, {{ user.username }}!
+    {% else %}
+        <a href="{% url 'accounts:login' %}">Log in</a>
+    {% endif %}
+</p>
+
+{% block content %}{% endblock content %}
+
+```
+
+In Django's authentication system, every template has a user object available that always has an `is_authenticated` attribute set: the attribute is `True` if the user is logged in and `False` if the user is not logged in. This attribute allows us to display one message to authenticated users and another to unauthenticated users. If the user is authenticated, we display a greeting with their username. If the user is not authenticated, we display a link to the login page. This way, users will see a personalized greeting when they are logged in and a prompt to log in when they are not.
+
+### Logging Out
+
+Now we need to provide a way for users to log out. Logout requests should be submitted as POST requests, so we add a small logout form to `base.html` such that when users click the "Log out" button, they will go to a page confirming that they have been logged out.
+
+#### Adding a Logout Form to base.html
+
+We will add the form for logging out to `base.html` so it appears on every page. We will include it in another `if` block, so only users who are logged in will see the logout option:
+
+```html
+
+// Snip previous code
+
+{% block content %}{% endblock content %}
+
+{% if user.is_authenticated %}
+    <hr />
+    <form action="{% url 'accounts:logout' %}" method="post">
+        {% csrf_token %}
+        <button name="submit">Log out</button>
+    </form>
+{% endif %}
+
+```
+
+The default URL pattern for logging out is `accounts/logout/`. However, the request has to be sent as a POST request; otherwise, attackers can easily force logout requests. To make the logout request use the POST method, we wrap the logout button in a form that submits a POST request to the logout URL.
+
+We place the form at the bottom of the page, below a horizontal rule element (`<hr />`), to visually separate it from the main content. This is an easy way to always keep the logout button in a consistent position below any other content on the page. The form itself has the logout URL as its `action` argument, and `post` as the request method. Every form in Django should include a CSRF token to protect against Cross-Site Request Forgery attacks, so we include the `{% csrf_token %}` template tag inside the form. 
+
+#### The LOGOUT_REDIRECT_URL Setting
+
+When the user clicks the "Log out" button, they will be logged out and redirected to a page specified by the `LOGOUT_REDIRECT_URL` setting in `settings.py`. By default, this setting is not defined, so users will be redirected to the login page after logging out. We can change this behavior by setting `LOGOUT_REDIRECT_URL` to a different URL:
+
+```python
+
+# My settings
+LOGIN_REDIRECT_URL = 'learning_logs:index'
+LOGOUT_REDIRECT_URL = 'learning_logs:index'
+
+```
+
+By setting `LOGOUT_REDIRECT_URL` to `'learning_logs:index'`, we tell Django to redirect users to the home page of the learning logs app after they log out. 
+
+### The Registration Page
