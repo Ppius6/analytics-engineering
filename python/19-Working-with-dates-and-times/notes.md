@@ -46,6 +46,8 @@ print(delta.days)  # Output: 14
 
 ```
 
+Apart from just extracting `delta.days`, we can also extract other items such as `delta.seconds` and `delta.microseconds` to get the total duration in seconds or microseconds, respectively. And also perform custom arithmetics such as `weeks = delta.days // 7` to get the number of weeks in the duration or `remaining_days = delta.days % 7` to get the remaining days after accounting for the full weeks.
+
 We can also calculate the difference between two dates, which results in a `timedelta` object. The `timedelta` object represents the difference between two dates or times and can be used to perform arithmetic operations on dates.
 
 ```python
@@ -386,7 +388,164 @@ print(second_1_am_utc - first_1_am_utc) # Output: 1:00:00 - The difference betwe
 
 ```
 
-
-
-
 ## Dates and Times in Pandas
+
+To make timedelta columns, we have to first convert the date columns to datetime objects using `pd.to_datetime()`, and then we can subtract the two datetime columns to get a timedelta column.
+
+We can also use the `parse_dates` parameter in `pd.read_csv()` to automatically parse date columns when reading a CSV file.
+
+```python
+
+import pandas as pd
+
+rides = pd.read_csv('rides.csv', parse_dates=['start_time', 'end_time'])
+
+# Or
+
+import pandas as pd
+
+rides = pd.read_csv('rides.csv')
+rides['start_time'] = pd.to_datetime(rides['start_time'])
+rides['end_time'] = pd.to_datetime(rides['end_time'])
+
+rides['duration'] = rides['end_time'] - rides['start_time']
+print(rides['duration'])
+
+```
+
+We can then add custom columns to the DataFrame based on the duration, such as the number of minutes or hours. There are various attributes and methods available for working with datetime and timedelta objects in pandas. Some are listed below:
+
+- `dt` accessor: This allows you to access datetime properties and methods for a Series of datetime objects. For example, `rides['start_time'].dt.year` would give you the year component of the start time.
+
+- `total_seconds()`: This method can be used on a timedelta object to get the total duration in seconds. For example, `rides['duration'].dt.total_seconds()` would give you the duration of each ride in seconds.
+
+- `components`: This attribute can be used on a timedelta object to get the duration broken down into its components (days, hours, minutes, seconds). For example, `rides['duration'].dt.components` would give you a DataFrame with the components of the duration for each ride.
+
+
+## DateTime Properties and Attributes
+
+| Property | Description |
+|----------|-------------|
+| year | The year of the datetime |
+| month | The month of the datetime |
+| day | The days of the datetime |
+| hour | The hour of the datetime |
+| minute | The minutes of the datetime |
+| second | The seconds of the datetime |
+| microsecond | The microseconds of the datetime |
+| nanosecond | The nanoseconds of the datetime |
+| date | Returns datetime.date (does not contain timezone information) |
+| time | Returns datetime.time (does not contain timezone information) |
+| timetz | Returns datetime.time as local time with timezone information |
+| dayofyear | The ordinal day of year |
+| day_of_year | The ordinal day of year |
+| dayofweek | The number of the day of the week with Monday=0, Sunday=6 |
+| day_of_week | The number of the day of the week with Monday=0, Sunday=6 |
+| weekday | The number of the day of the week with Monday=0, Sunday=6 |
+| quarter | Quarter of the date: Jan-Mar = 1, Apr-Jun = 2, etc. |
+| days_in_month | The number of days in the month of the datetime |
+| is_month_start | Logical indicating if first day of month (defined by frequency) |
+| is_month_end | Logical indicating if last day of month (defined by frequency) |
+| is_quarter_start | Logical indicating if first day of quarter (defined by frequency) |
+| is_quarter_end | Logical indicating if last day of quarter (defined by frequency) |
+| is_year_start | Logical indicating if first day of year (defined by frequency) |
+| is_year_end | Logical indicating if last day of year (defined by frequency) |
+| is_leap_year | Logical indicating if the date belongs to a leap year |
+
+## Date Offsets and Frequency Strings
+
+Most DateOffsets have associated frequencies strings, or offset aliases, that can be passed into freq keyword arguments. The available date offsets and associated frequency strings can be found below:
+
+| Date Offset | Frequency String | Description |
+|-------------|------------------|-------------|
+| DateOffset | None | Generic offset class, defaults to absolute 24 hours |
+| BDay or BusinessDay | 'B' | business day (weekday) |
+| CDay or CustomBusinessDay | 'C' | custom business day |
+| Week | 'W' | one week, optionally anchored on a day of the week |
+| WeekOfMonth | 'WOM' | the x-th day of the y-th week of each month |
+| LastWeekOfMonth | 'LWOM' | the x-th day of the last week of each month |
+| MonthEnd | 'ME' | calendar month end |
+| MonthBegin | 'MS' | calendar month begin |
+| BMonthEnd or BusinessMonthEnd | 'BME' | business month end |
+| BMonthBegin or BusinessMonthBegin | 'BMS' | business month begin |
+| CBMonthEnd or CustomBusinessMonthEnd | 'CBME' | custom business month end |
+| CBMonthBegin or CustomBusinessMonthBegin | 'CBMS' | custom business month begin |
+| SemiMonthEnd | 'SME' | 15th (or other day_of_month) and calendar month end |
+| SemiMonthBegin | 'SMS' | 15th (or other day_of_month) and calendar month begin |
+| QuarterEnd | 'QE' | calendar quarter end |
+| QuarterBegin | 'QS' | calendar quarter begin |
+| BQuarterEnd | 'BQE' | business quarter end |
+| BQuarterBegin | 'BQS' | business quarter begin |
+| FY5253Quarter | 'REQ' | retail (aka 52-53 week) quarter |
+| HalfYearEnd | 'HYE' | calendar half year end |
+| HalfYearBegin | 'HYS' | calendar half year begin |
+| BHalfYearEnd | 'BHYE' | business half year end |
+| BHalfYearBegin | 'BHYS' | business half year begin |
+| YearEnd | 'YE' | calendar year end |
+| YearBegin | 'YS' or 'BYS' | calendar year begin |
+| BYearEnd | 'BYE' | business year end |
+| BYearBegin | 'BYS' | business year begin |
+| FY5253 | 'RE' | retail (aka 52-53 week) year |
+| Easter | None | Easter holiday |
+| BusinessHour | 'bh' | business hour |
+| CustomBusinessHour | 'cbh' | custom business hour |
+| Day | 'D' | one calendar day |
+| Hour | 'h' | one hour |
+| Minute | 'min' | one minute |
+| Second | 's' | one second |
+| Milli | 'ms' | one millisecond |
+| Micro | 'us' | one microsecond |
+| Nano | 'ns' | one nanosecond |
+
+There are also some useful techniques such as resampling, which is a method for converting a time series to a different frequency. For example, you can resample daily data to monthly data by taking the mean of each month.
+
+```python
+
+import pandas as pd
+
+# Create a sample time series with daily frequency
+rides.resample('M', on='start_time').size() # Resample the rides DataFrame to monthly frequency based on the 'start_time' column and count the number of rides in each month.
+
+```
+
+We can resample on day level, weekly, month end, or year end. The frequencies used are shown in the table above. Resampling can be used to perform various operations such as calculating the mean, sum, or count of values within each resampled period. It is a powerful technique for analyzing time series data at different levels of granularity.
+
+### Time Zone Handling in Pandas
+
+Pandas provides robust support for time zone handling through the `tz` attribute of datetime-like objects. You can use the `tz_localize()` method to set the time zone for a datetime column and the `tz_convert()` method to convert between time zones.
+
+```python
+
+import pandas as pd
+
+rides['start_time'] = rides['start_time'].dt.tz_localize('UTC') # Localize the 'start_time' column to UTC
+
+# Convert the 'start_time' column to US Eastern Time
+rides['start_time'] = rides['start_time'].dt.tz_convert('US/Eastern')
+
+```
+
+In case we get an error about ambiguous times during daylight saving time transitions, we can use the `ambiguous` parameter to specify how to handle these cases. For example, we can set `ambiguous='NaT'` to mark ambiguous times as Not a Time (NaT):
+
+```python
+
+import pandas as pd
+
+rides['start_time'] = rides['start_time'].dt.tz_localize('US/Eastern', ambiguous='NaT') # Localize the 'start_time' column to US Eastern Time, marking ambiguous times as NaT
+
+```
+
+This will help ensure that your time zone handling is accurate and that you can work with time series data effectively in pandas.
+
+If we remove the ambiguous times, it is important we shift the indexes to fill in the missing times. We can use the `shift()` method to shift the index by a specified number of periods.
+
+```python
+
+import pandas as pd
+
+# Shift the index by one period to fill in the missing times
+rides.index = rides.index.shift(1, freq='H') # Shift the index of the rides DataFrame by one hour to fill in the missing times after removing ambiguous times.
+
+```
+
+More pandas time and date handling techniques can be found in the official pandas documentation: [Time series / date functionality](https://pandas.pydata.org/docs/user_guide/timeseries.html#)
