@@ -103,7 +103,7 @@ describe_pet('dog', 'simba')
 
 For the above to work, we supply our function `describe_pet()` with two variables for the two parameters which then prints out the output about the pet being described.
 
-#### Multiple Function Cals
+#### Multiple Function Calls
 
 We can call a function as many times as needed. Describing a second, different pet requires just one more call to `describe_pet():`
 
@@ -826,6 +826,502 @@ make_pizza(12, 'mushrooms', 'green peppers', 'extra cheese')
 ```
 
 The asterisk in the import statement tells Python to copy every function from the module pizza into this program file. It is recommended to however, import the necessary function(s) we are going to use to avoid getting unexpected results.
+
+## Docstrings
+
+The anatomy of a docstring is that it follows the following structure:
+
+```python
+
+def function_name(arguments):
+    """
+    Description of what the function does.
+
+    Description of the arguments, if any.
+
+    Description of the return value(s), if any.
+
+    Description of errors raised, if any.
+
+    Optional extra notes or examples of usage.
+
+```
+
+There are several docstring formats; `Google Style`, `Numpydoc`, `reStructuredText`, `EpyText`. `Google Style` and `Numpydoc` are the most popular formats, however.
+
+### Google Style
+
+In Google style, the docstring starts with a concise description of what the function does in imperative language. For instance: __Split the data frame and stack the columns__ instead of __This function will split the data frame and stack the columns__
+
+The arguments, or `Args` are listed each argument name, followed by its expected type in parentheses, and then what its role is in the function. If we need an extra space, we can break to the next line and indent. We also mark optional arguments.
+
+Next, we list the return value(s), if any, in a section called `Returns`. 
+
+Finally, if our function intentionally raises any errors, we list them in a section called `Raises`.
+
+More information can be found in this [Datacamp Python Docstrings Tutorial](https://www.datacamp.com/tutorial/docstrings-python)
+
+```python
+
+def function(arg_1, arg_2=42):
+    """Description of what the function does.
+
+    Args:
+        arg_1 (str): Description of arg_1 that can break onto the next line if needed.
+        arg_2 (int, optional): Write optional when an argument has a default value.
+
+    Returns:
+        bool: Description of what is returned.
+        Extra line are not indented
+
+    Raises:
+        ValueError: Description of when and why a ValueError is raised.
+
+```
+
+### Numpydoc
+
+The Numpydoc format is similar to Google Style but has a slightly different structure. It is widely used in the scientific Python community. An example of the structure is shown below:
+
+```python
+
+def function(arg_1, arg_2=42):
+    """Description of what the function does.
+
+    Parameters
+    ----------
+    arg_1 : expected type of arg_1
+        Description of arg_1.
+    arg_2 : int, optional
+        Write optional when an argument has a default value.
+        Default=42
+
+    Returns
+    -------
+    The type of the return value
+        Description of what is returned.
+        Extra line are not indented
+        Replaces "Returns" with "Yields" if this function is a generator.
+
+    Raises
+    ------
+    ValueError
+        Description of when and why a ValueError is raised.
+
+```
+
+We can always use the method `__doc__` on a function to view the docstring.
+
+We can also use the `inspect` module from the standard library to get more detailed information about a function.
+
+```python
+
+# Inspect the count_letter() function to get its docstring
+docstring = inspect.getdoc(count_letter)
+
+```
+
+## Context Managers
+
+A context manager is a type of function that sets up a context for our code to run in, runs the code, and removes the context. A useful analogy can be caterers setting up the tables for a party and once the party is done, cleaning it up again.
+
+An example is:
+
+```python
+
+with open('my_file.txt') as f:
+    content = f.read()
+    length = len(content)
+
+print(f'The file is {length} characters long.')
+
+```
+
+`open()` sets up a context by opening a file, lets us run the code we want on the file and automatically closes it when the `with` block is exited.
+
+Using a context manager:
+
+```python
+
+with <context-manager> as <variable-name>:
+    # Do something with the context manager
+    # This code is running "inside the context"
+
+# This code runs after the context is removed
+
+```
+
+We can also use a already written context manager to explore a code. 
+
+The following code uses `timer()` to print out how long the code in the context block takes to run.
+
+```python
+
+image = get_image_from_instagram()
+
+# Time how long process_with_numpy(image) takes to run
+with timer():
+  print('Numpy version')
+  process_with_numpy(image)
+
+# Time how long process_with_pytorch(image) takes to run
+with timer():
+  print('Pytorch version')
+  process_with_pytorch(image)
+
+```
+
+There are two ways of writing a context manager; `Class based` and `Function-based`
+
+There are five parts to creating a `function-based` context manager:
+
+- Define a function
+
+- (Optional) Add any set up code your context needs
+
+- Use the `yield` keyword.
+
+- (Optional) Add any clean up code your context needs
+
+- Add the `@contextlib.contextmanager` decorator
+
+```python
+
+@contextlib.contextmanager
+def my_context():
+    # Add any set up code needed
+    yield
+    # Add any teardown code needed
+
+```
+
+```python
+
+@contextlib.contextmanager
+def database(url):
+    # Set up a database connection
+    db = postgres.connect(url)
+
+    yield db
+
+    # Clean up the database connection
+    db.close()
+
+url = 'http://datacamp.com/data'
+with database(url) as my_db:
+    course_list = my_db.execute(
+        'SELECT * FROM courses'
+    )
+```
+
+### Functions as Objects
+
+Functions are objects in Python, which means that they can be assigned to variables, stored in data structures, passed as arguments to other functions, and returned as values from other functions.
+
+For example, we can assign a function to a variable:
+
+```python
+def greet(name):
+    return f"Hello, {name}!"
+
+greeting = greet
+print(greeting("Alice"))  # Output: Hello, Alice!
+```
+
+We can also pass a function as an argument to another function:
+
+```python
+def apply_function(func, value):
+    return func(value)
+result = apply_function(greet, "Bob")
+print(result)  # Output: Hello, Bob!
+```
+
+We can also store functions in data structures like lists or dictionaries:
+
+```python
+def add(x, y):
+    return x + y
+
+def subtract(x, y):
+    return x - y
+
+operations = {
+    'add': add,
+    'subtract': subtract
+}
+
+print(operations['add'](5, 3))       # Output: 8
+print(operations['subtract'](5, 3))  # Output: 2
+
+```
+
+We can also define a function inside another function, also known as a nested function:
+
+```python
+def foo():
+    x = [1, 2, 3]
+
+    def bar(y):
+        print(y)
+
+    for value in x:
+        bar(value)
+
+foo()
+# Output:
+# 1
+# 2
+# 3
+```
+
+Second example of a nested function:
+
+```python
+
+def foo(x, y):
+    def in_range(v):
+        return 4 < v < 10
+
+    if in_range(x) and in_range(y):
+        return x * y
+    else:
+        return "Both numbers must be between 4 and 10."
+print(foo(5, 6))  # Output: 30
+print(foo(3, 6))  # Output: Both numbers must be between 4 and 10.
+
+```
+
+### Scope of a Function
+
+The scope of a function refers to the region of the program where a variable is defined and can be accessed. Variables defined inside a function are called local variables and can only be accessed within that function. Variables defined outside of any function are called global variables and can be accessed from anywhere in the program.
+
+The key concepts are:
+
+- `Global scope`: accessible from anywhere in the program.
+
+- `Local scope`: accessible only within the function where it is defined.
+
+- `Enclosing scope`: accessible in nested functions.
+
+```python
+
+x = 10 # This is a global variable
+
+def f():
+    x = 5 # This is a local variable that shadows the global variable x
+    print(x)
+
+def g():
+    global x
+    x = 20 # This modifies the global variable x
+
+f() # Output: 5
+print(x) # Output: 10
+
+g() # Modifies the global variable x
+print(x) # Output: 20
+
+```
+
+In this example;
+
+```python
+
+x = 50
+
+def one():
+  x = 10
+
+def two():
+  global x
+  x = 30
+
+def three():
+  x = 100
+  print(x)
+
+for func in [one, two, three]:
+  func()
+  print(x)
+
+```
+
+The output of the above code is:
+
+```
+50, 30, 100, 30
+```
+
+This is because the function `one()` creates a local variable `x` that shadows the global variable `x`, so when we call `one()`, it does not modify the global variable. The function `two()` uses the `global` keyword to indicate that it wants to modify the global variable `x`, so when we call `two()`, it changes the value of `x` to 30. The function `three()` creates a local variable `x` that shadows the global variable, so when we call `three()`, it prints 100 but does not modify the global variable. After calling `three()`, the value of `x` remains 30, which is the value set by `two()`.
+
+### Nonlocal Variables
+
+A `nonlocal variable` is a variable that is defined in an enclosing scope that is not the global scope. It can be accessed and modified by nested functions. To modify a nonlocal variable, we use the `nonlocal` keyword.
+
+```python
+def outer():
+    x = "Hello"
+
+    def inner():
+        nonlocal x
+        x = "Hi"
+        print("Inner:", x)
+    inner()
+    print("Outer:", x)
+outer()
+
+# Output:
+# Inner: Hi
+# Outer: Hi
+
+```
+
+In this example, the `outer()` function defines a variable `x` with the value "Hello". The `inner()` function is nested inside `outer()` and uses the `nonlocal` keyword to indicate that it wants to modify the variable `x` defined in the enclosing scope. When we call `inner()`, it changes the value of `x` to "Hi" and prints it. After calling `inner()`, when we print `x` in the `outer()` function, it reflects the change made by `inner()`, so it prints "Hi".
+
+To understand the scope of variables in Python, we can use the `LEGB` rule, which stands for Local, Enclosing, Global, Built-in. This rule describes the order in which Python looks for variables when they are referenced in a function.
+
+We also need to understand how to use the `global` and `nonlocal` keywords to modify variables in different scopes. The `global` keyword allows us to modify a global variable from within a function, while the `nonlocal` keyword allows us to modify a variable in an enclosing scope that is not the global scope. The following code demonstrates the use of both keywords:
+
+```python
+x = "Global"
+
+def outer():
+    x = "Enclosing"
+
+    def inner():
+        nonlocal x
+        x = "Inner"
+        print("Inner:", x)
+
+    inner()
+    print("Outer:", x)
+
+outer()
+print("Global:", x)
+# Output:
+# Inner: Inner
+# Outer: Inner
+# Global: Global
+```
+
+In this example, we have a global variable `x` with the value "Global". The `outer()` function defines a variable `x` with the value "Enclosing". The `inner()` function is nested inside `outer()` and uses the `nonlocal` keyword to modify the variable `x` defined in the enclosing scope. When we call `inner()`, it changes the value of `x` to "Inner" and prints it. After calling `inner()`, when we print `x` in the `outer()` function, it reflects the change made by `inner()`, so it prints "Inner". Finally, when we print the global variable `x`, it remains unchanged and prints "Global".
+
+### Closures
+
+A `closure` is a function that retains access to variables from its enclosing scope, even after the outer function has finished executing. This allows the inner function to remember and use the state of the outer function.
+
+```python
+
+def foo():
+    a = 5
+    def bar():
+        print(a)
+    return bar
+
+closure_function = foo()
+closure_function()  # Output: 5
+
+```
+
+Here, the `foo()` function defines a variable `a` and an inner function `bar()`. The `bar()` function has access to the variable `a` even after `foo()` has finished executing. When we call `closure_function()`, it prints the value of `a`, which is 5.
+
+From closures, we can access the type of a closure, length of a closure, and the variables in a closure using the `__closure__` attribute.
+
+```python
+
+type(closure_function)  # Output: <class 'function'>
+len(closure_function.__closure__)  # Output: 1
+closure_function.__closure__[0].cell_contents  # Output: 5
+
+```
+
+#### Closures and Deletions
+
+When a closure is created, it retains access to the variables in its enclosing scope. If we delete a variable from the enclosing scope, the closure will still have access to it as long as it has not been garbage collected.
+
+```python
+
+def foo():
+    a = 5
+    def bar():
+        print(a)
+    return bar
+
+closure_function = foo()
+closure_function()  # Output: 5
+
+del a  # This will not affect the closure
+closure_function()  # Output: 5
+
+```
+
+This is because `foo()`'s __value__ argument gets added to the closure attached to the new `closure_function` function. So, even if we delete `a` from the global scope, the closure still retains access to the value of `a` that was defined in `foo()`, allowing `closure_function()` to continue printing 5.
+
+### Closures and overwriting 
+
+Similarly, if we overwrite a variable in the enclosing scope, the closure will still have access to the original value of that variable as long as it has not been garbage collected.
+
+```python
+
+def foo():
+    a = 5
+    def bar():
+        print(a)
+    return bar
+closure_function = foo()
+closure_function()  # Output: 5
+
+a = 10  # This will not affect the closure
+closure_function()  # Output: 5
+
+```
+
+### Decorators
+
+A `decorator` is a function that takes another function as an argument and extends its behavior without explicitly modifying it. Decorators are often used to add functionality to existing functions in a clean and reusable way.
+
+```python
+
+@double_args
+def multiply(x, y):
+    return x * y
+
+multiply(2, 3)  # Output: 12
+
+```
+
+In this example, `double_args` is a decorator that takes the `multiply` function as an argument and modifies its behavior to double the arguments before calling the original function. When we call `multiply(2, 3)`, it returns 12 instead of 6 because the arguments are doubled by the decorator.
+
+Let us see how to create a simple decorator that doubles the arguments of a function:
+
+```python
+def multiply(x, y):
+    return x * y
+
+def double_args(func):
+    # Define a new function that we can modify
+    def wrapper(a, b):
+        # Call the passed in function with modified arguments
+        return func(a * 2, b * 2)
+    return wrapper
+# Use the decorator to modify the behavior of multiply
+multiply = double_args(multiply)
+print(multiply(2, 3))  # Output: 12
+
+```
+
+We can assign the new function to `multiply` and overwrite the original function as Python stores the original multiply function in the new function's enclosure. 
+
+Finally, we can also use the `@` syntax to apply the decorator more cleanly:
+
+```python
+@double_args
+def multiply(x, y):
+    return x * y
+
+print(multiply(2, 3))  # Output: 12
+```
 
 ## Styling Functions
 
