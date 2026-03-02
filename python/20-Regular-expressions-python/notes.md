@@ -221,3 +221,242 @@ print(my_string.count("World"))  # Output: 1
 print(my_string.count("Python"))  # Output: 1
 
 ```
+
+## Formatting Strings
+
+Python provides several ways to format strings, allowing you to create dynamic and customized output. The common formatting methods include:
+
+- Positional formatting using the `format()` method
+
+- f-strings (formatted string literals)
+
+- Template strings from the `string` module
+
+### Positional Formatting with `format()`
+
+Here, we place placeholders in the string using curly braces `{}` and then call the `format()` method to fill in those placeholders with values in the format `text{}.format(value)`.
+
+For example:
+
+```python
+
+print("Hello, {}!".format("Pius"))  # Output: 'Hello, Pius!'
+
+```
+
+You can also use multiple placeholders and specify the order of values using indices. We can chose to specify the index of the values for the case of even reordering them oor just specify the values in the order they appear in the string.
+
+For example:
+
+```python
+
+print("Hello, {0}!, Welcome to {1}".format("Pius", "Python"))  # Output: 'Hello, Pius!, Welcome to Python'
+
+```
+
+#### Named placeholders
+
+Here, we can use named placeholders in the string and pass the values as keyword arguments to the `format()` method. For example:
+
+```python
+
+tool = "Python"
+name = "Pius"
+
+print("Hello, {name}!, Welcome to {tool}".format(name=name, tool=tool))  # Output: 'Hello, Pius!, Welcome to Python'
+
+```
+
+For cases where we have dictionaries, we can use the following style:
+
+```python
+
+my_dict = {"name": "Pius", "tool": "Python"}
+print('Hello, {data[name]}!, Welcome to {data[tool]}'.format(data=my_dict))  # Output: 'Hello, Pius!, Welcome to Python'
+
+```
+
+#### Format specifiers
+
+Format specifiers allow you to control the formatting of values in the output string. They are specified after a colon `:` within the placeholder. We specify the data type to be used: `{index:specifier}`.
+
+For example:
+
+```python
+print("The value of pi is approximately {:.2f}".format(3.14159))  # Output: 'The value of pi is approximately 3.14'
+
+print("Only {1} of the students out of a total of {0} passed the exam.".format(100, 85))  # Output: 'Only 85 of the students out of a total of 100 passed the exam.'
+```
+
+When formatting datetime, we can use the `datetime` module to format date and time values. For example:
+
+```python
+from datetime import datetime
+print("Current date and time: {:%Y-%m-%d %H:%M:%S}".format(datetime.now()))  # Output: 'Current date and time: 2024-06-01 12:34:56'
+
+```
+
+### f-strings (Formatted String Literals)
+
+f-strings, introduced in Python 3.6, provide a more concise and readable way to format strings. They are defined by prefixing the string with the letter `f` or `F` and using curly braces `{}` to embed expressions directly within the string.
+
+For example:
+
+```python
+
+name = "Pius"
+tool = "Python"
+print(f"Hello, {name}!, Welcome to {tool}")  # Output: 'Hello, Pius!, Welcome to Python'
+
+```
+
+There are several allowed conversions for f-strings, including:
+
+- `!s`: Converts the value to a string using `str()`
+- `!r`: Converts the value to a string using `repr()`
+- `!a`: Converts the value to a string using `ascii()`
+
+For example:
+
+```python
+
+value = "Hello, World!"
+print(f"Using str(): {value!s}")  # Output: 'Using str(): Hello, World!'
+print(f"Using repr(): {value!r}")  # Output: 'Using repr(): 'Hello, World!''
+print(f"Using ascii(): {value!a}")  # Output: 'Using ascii(): 'Hello, World!''
+
+```
+
+We have several format specifiers for f-strings as well, which are similar to those used with the `format()` method. They include:
+
+- `e`: Exponential scientific notation, i.e., 1.23e+02
+- `d`: Digit, i.e., 123
+- `f`: Floating-point decimal format, i.e., 123.45
+- `s`: String format, i.e., 'Hello'
+- `x`: Hexadecimal format, i.e., 0x7b
+- `b`: Binary format, i.e., 0b1111011
+- `o`: Octal format, i.e., 0o173
+- `c`: Character format, i.e., 'A' for 65
+
+```python
+
+from datetime import datetime
+my_today = datetime.now()
+
+print(f"Current date and time: {my_today:%Y-%m-%d %H:%M:%S}")  # Output: 'Current date and time: 2024-06-01 12:34:56'
+
+```
+
+#### Index lookups
+
+```python
+
+family = {"dad": "John", "mom": "Jane", "child": "Pius"}
+
+print("Hello, {family['child']}!, Welcome to Python".format(family=family))  # Output: 'Hello, Pius!, Welcome to Python'
+
+```
+
+or
+
+```python
+
+family = {"dad": "John", "mom": "Jane", "child": "Pius"}
+print(f"Hello, {family['child']}!, Welcome to Python")  # Output: 'Hello, Pius!, Welcome to Python'
+
+```
+
+### Template Strings
+
+The `string` module provides a `Template` class that allows you to create template strings with placeholders. You can use the `substitute()` method to replace the placeholders with actual values. For example:
+
+```python
+
+from string import Template
+template = Template("Hello, $name!, Welcome to $tool")
+result = template.substitute(name="Pius", tool="Python")
+print(result)  # Output: 'Hello, Pius!, Welcome to Python'
+
+```
+
+We can i.e., add `$$` to include a literal dollar sign in the output. For example:
+
+```python
+
+from string import Template
+template = Template("The price is $$ $price")
+result = template.substitute(price=10)
+print(result)  # Output: 'The price is $10'
+
+```
+
+The `Template` class also provides a `safe_substitute()` method, which works similarly to `substitute()`, but instead of raising a `KeyError` when a placeholder is missing, it leaves the placeholder unchanged in the output. For example:
+
+```python
+
+from string import Template
+
+template = Template("Hello, $name!, Welcome to $tool")
+result = template.safe_substitute(name="Pius")
+print(result)  # Output: 'Hello, Pius!, Welcome to $tool'
+
+```
+
+`str.format()` are good to start with in most cases, but f-strings are generally more concise and easier to read, especially when embedding expressions directly within the string. Template strings can be useful when you want to create templates that can be reused with different values, but they are less commonly used than the other two methods.
+
+## Regular Expressions
+
+A REGular EXpression (regex) is a string containing a combination of normal characters and special meta-characters that describes patterns to find text or positions within a text. Regular expressions are used for searching, matching, and manipulating strings based on specific patterns.
+
+In `r'st\d\s\w{3, 10}`,
+
+- `r` indicates that the string is a raw string, which means that backslashes are treated as literal characters and not as escape characters.
+- `st` matches the literal characters "st".
+- `\d` matches any digit (0-9).
+- `\s` matches any whitespace character (space, tab, newline).
+- `\w{3, 10}` matches any word character (alphanumeric or underscore) that occurs between 3 and 10 times.
+
+The `re` module in Python provides functions for working with regular expressions. 
+
+To find all matches of a pattern in a string, we can use the `re.findall()` function: `re.findall(pattern, string)`. This function returns a list of all non-overlapping matches of the pattern in the string. For example:
+
+```python
+import re
+
+re.findall(r'\d+', 'The price is 100 dollars and 50 cents.')  # Output: ['100', '50']
+
+re.split(r"!", "Hello! How are you?")  # Output: ['Hello', ' How are you?']
+
+re.sub(r'\s+', ' ', 'This   is   a   test.')  # Output: 'This is a test.'
+
+```
+
+Quantifiers in regular expressions specify how many times a character or group should be matched. Some common quantifiers include:
+
+- `*`: Matches 0 or more occurrences of the preceding element.
+- `+`: Matches 1 or more occurrences of the preceding element.
+- `?`: Matches 0 or 1 occurrence of the preceding element.
+- `{n}`: Matches exactly n occurrences of the preceding element.
+- `{n,}`: Matches n or more occurrences of the preceding element.
+- `{n,m}`: Matches between n and m occurrences of the preceding element.
+
+For example:
+
+```python
+
+import re
+
+re.findall(r'\d*', 'The price is 100 dollars and 50 cents.')  # Output: ['', '', '', '', '', '', '100', '', '', '', '', '50', '', '', '', '', '']
+
+re.findall(r'\d+', 'The price is 100 dollars and 50 cents.')  # Output: ['100', '50']
+
+re.findall(r'\d?', 'The price is 100 dollars and 50 cents.')  # Output: ['', '', '', '', '', '', '1', '0', '0', '', '', '', '5', '0', '', '', '', '', '']
+
+re.findall(r'\d{3}', 'The price is 100 dollars and 50 cents.')  # Output: ['100']
+
+re.findall(r'\d{2,}', 'The price is 100 dollars and 50 cents.')  # Output: ['100', '50']
+
+re.findall(r'\d{1,3}', 'The price is 100 dollars and 50 cents.')  # Output: ['100', '50']
+
+```
+

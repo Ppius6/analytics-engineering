@@ -35,3 +35,25 @@ if __name__ == "__main__":
     with timer() as elapsed:
         slow()
     print(f"slow elapsed: {elapsed():.6f}s, timer used: {timer._count}")
+
+value = "Hello, World!"
+print(f"Using str(): {value!s}")  # Output: 'Using str(): Hello, World!'
+print(f"Using repr(): {value!r}")  # Output: 'Using repr(): 'Hello, World!''
+print(f"Using ascii(): {value!a}")  # Output: 'Using ascii(): 'Hello, World!''
+
+family = {"dad": "John", "mom": "Jane", "child": "Pius"}
+print(
+    f"Hello, {family['child']}!, Welcome to Python"
+)  # Output: 'Hello, Pius!, Welcome to Python'
+
+from string import Template
+
+template = Template("The price is $$ $price")
+result = template.substitute(price=10)
+print(result)  # Output: 'The price is $10'
+
+from string import Template
+
+template = Template("Hello, $name!, Welcome to $tool")
+result = template.safe_substitute(name="Pius")
+print(result)  # Output: 'Hello, Pius!, Welcome to $tool'
