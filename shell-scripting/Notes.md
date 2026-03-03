@@ -124,6 +124,7 @@ Shell scripting is a powerful way to automate tasks in Unix-like operating syste
     - Description: Displays the first 10 lines of the specified file by default. You can specify the number of lines with the `-n` option.
     - Example:
       ```bash
+      $ head folder/file.txt
       $ head -n 5 file1.txt
       ```
 15. `tail` - View the End of a File
@@ -261,6 +262,17 @@ Shell scripting is a powerful way to automate tasks in Unix-like operating syste
       apple
       banana
       cherry
+
+      $ sort -r file1.txt
+      cherry
+      banana
+      apple
+
+      $ sort -n numbers.txt
+      1
+      2
+      10
+      
       ```
 31. `uniq` - Remove Duplicate Lines
     - Usage: `uniq filename`
@@ -286,7 +298,33 @@ Shell scripting is a powerful way to automate tasks in Unix-like operating syste
       ```bash
       $ sh script.sh
       ```
+
+34. `ls -F` - Prints a slash (`/`) after directory names, an asterisk (`*`) after executable files, and an at symbol (`@`) after symbolic links.
+    - Usage: `ls -F [directory]`
+    - Description: Lists files and directories in the specified directory, appending special characters to indicate the type of each entry.
+    - Example:
+      ```bash
+      $ ls -F
+      file1.txt  newfile.txt  dir1/  script.sh*
+      ```
       
+35. `history` - View Command History
+    - Usage: `history`
+    - Description: Displays a list of previously executed commands in the terminal. From the history output, you can re-execute a command by typing `!n`, where `n` is the command number in the history list.
+    - Example:
+      ```bash
+      $ history
+      1  pwd
+      2  ls -l
+      3  cd dir1
+      4  history
+
+      $ !2 # This will re-execute the command `ls -l`
+      total 8
+      drwxr-xr-x 2 user user 4096 Jan 1 12:00 dir1
+      -rw-r--r-- 1 user user  123 Jan 1 12:00 file1.txt
+      ```
+
 ### Editing files in UNIX
 1. `nano` - Simple Text Editor
     - Usage: `nano filename`
@@ -306,4 +344,14 @@ For example, to edit a file named `names.txt`, you would use:
 $ nano names.txt
 ```
 then enter the names, and save the file with `CTRL + O` followed by `ENTER`, and exit with `CTRL + X`.
+
+### Navigation
+
+To navigate through directories while making changes, we can use the `~` symbol to represent the home directory. For example, if you want to navigate to a directory called `projects` in your home directory, you can use:
+
+```bash
+$ cd ~/projects
+```
+
+This command will take you to the `projects` directory located in your home directory, regardless of your current location in the filesystem.
 
