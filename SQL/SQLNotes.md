@@ -4,28 +4,40 @@
 
 `Read more`: [More notes](https://www.geeksforgeeks.org/sql-tutorial/?ref=shm)
 
-- A database is a standard language for storing, manipulating, and retrieving data in databases. 
+A database is a standard language for storing, manipulating, and retrieving data in databases. It is an organized collection of data stored in a computer system and is controlled by a database management system (DBMS). 
 
-- It is an organized collection of data stored in a computer system and is controlled by a database management system (DBMS). 
-- Here, data is organized into tables consisting of rows and columns and is indexed so data can be updated, expanded, and deleted easily. The databases include:
-    - `Relational databases` - A database with a set of tables with data that fits into a pre-defined category.
-    - `Distributed databases` - A database in which portions of the database are stored in multiple physical locations, and in which processing is dispersed or replicated among different points in a network.
-    - `Cloud databases` - A database that runs on a cloud computing platform. It is built in a cloud to optimize for a virtual work setting and distribution. Organizations tend to be charged based on the amount of storage or bandwidth they use.
-    - `Object-Oriented Databases`: Similar to object-oriented programming, data in an object-oriented database is represented as objects.
-    - `Data Warehouses`: A data warehouse is a sort of database created especially for quick query and analysis. It is a central repository for data.
-    - `NoSQL/Non-Relational Databases`: Unlike relational databases, which specify how all data input must be formatted, NoSQL, or nonrelational databases, permit the storing and manipulation of unstructured and semistructured data. The prevalence and complexity of online applications led to the rise in popularity of NoSQL databases. They include key/value, graph, column, document databases.
-    - `Graph database`: A graph database is a type of NoSQL database. It stores, queries, and maps relationships according to the graph theory. Graph databases are used to analyze interactions and connections. They consist of nodes and edges, and use a declarative programming language called SPARQL.
-    - `Open-source database`: These databases are open-source, meaning anyone can contribute or edit the source code. They can be SQL or NoSQL.
+Here, data is organized into tables consisting of rows and columns and is indexed so data can be updated, expanded, and deleted easily. 
+
+The databases include:
+
+- `Relational databases`: A database with a set of tables with data that fits into a pre-defined category.
+
+- `Distributed databases` - A database in which portions of the database are stored in multiple physical locations, and in which processing is dispersed or replicated among different points in a network.
+
+- `Cloud databases` - A database that runs on a cloud computing platform. It is built in a cloud to optimize for a virtual work setting and distribution. Organizations tend to be charged based on the amount of storage or bandwidth they use.
+    
+- `Object-Oriented Databases`: Similar to object-oriented programming, data in an object-oriented database is represented as objects.
+    
+- `Data Warehouses`: A data warehouse is a sort of database created especially for quick query and analysis. It is a central repository for data.
+    
+- `NoSQL/Non-Relational Databases`: Unlike relational databases, which specify how all data input must be formatted, NoSQL, or nonrelational databases, permit the storing and manipulation of unstructured and semistructured data. The prevalence and complexity of online applications led to the rise in popularity of NoSQL databases. They include key/value, graph, column, document databases.
+
+- `Graph database`: A graph database is a type of NoSQL database. It stores, queries, and maps relationships according to the graph theory. Graph databases are used to analyze interactions and connections. They consist of nodes and edges, and use a declarative programming language called SPARQL.
 
 ### Database Management System
 
 A `DBMS`, also known as a `Database Management System` is a computer program that can store large amounts of data and process them accordingly. 
 
 DBMS include:
+
 - `Relational DBMS`: Organized data into tables.
+
 - `NoSQL DBMS`: It's more flexible and can handle a variety of data types, making it perfect for big data and real-time web apps. Think of it like a giant, flexible storage room where you can keep all sorts of items without needing them to be the same shape or size.
+
 - `NewSQL DBMS`: They provide the scalability and adaptability inherent in NoSQL, while preserving the structured integrity and consistency characteristic of an RDBMS. 
+
 - `Object-Oriented DBMS`: This type stores data in objects, similar to object-oriented programming. It's like having a personal assistant for each type of data, understanding how it behaves and how it relates to other data. 
+
 - `Cloud DBMS`: It is hosted on a cloud platform rather than on-premises servers or personal computers.
 
 It is also the software that interacts with users to process data. The software include:
