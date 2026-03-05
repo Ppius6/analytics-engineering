@@ -1,6 +1,7 @@
 # SQL Notes
 
 ## SQL, Databases, and DBMS.
+
 `Read more`: [More notes](https://www.geeksforgeeks.org/sql-tutorial/?ref=shm)
 
 - A database is a standard language for storing, manipulating, and retrieving data in databases. 
@@ -56,12 +57,13 @@ SQL (Structured Query Language) uses data types to define the nature of data tha
 Numeric data types are used to store numbers, either whole numbers (integers) or numbers with fractional parts (decimals).
 
 - **INT (INTEGER):**
+
   - Stores whole numbers.
   - Common subtypes: `TINYINT`, `SMALLINT`, `MEDIUMINT`, `BIGINT`.
     - `TINYINT`: A very small integer with a range from -128 to 127 (signed) or 0 to 255 (unsigned).
     - TINYINT is suitable for storing small data ranges such as age, number of items in a limited collection, or similar use cases. Here is an example of how to use TINYINT:
 
-        ```
+        ```sql
         CREATE TABLE example_tinyint (
             id INT AUTO_INCREMENT PRIMARY KEY,
             rating TINYINT NOT NULL
@@ -74,7 +76,7 @@ Numeric data types are used to store numbers, either whole numbers (integers) or
 
     - `SMALLINT`: A small integer with a range of -32768 to 32767 (signed) or 0 to 65535 (unsigned). It’s commonly used for quantities where the maximum number is known not to exceed the limit, such as the number of participants in an event divided into different sessions. Here’s an example:
 
-        ```
+        ```sql
         CREATE TABLE example_smallint (
             id INT AUTO_INCREMENT PRIMARY KEY,
             participants SMALLINT NOT NULL
@@ -87,7 +89,7 @@ Numeric data types are used to store numbers, either whole numbers (integers) or
 
     - `MEDIUMINT`: A medium-sized integer with a range from -8388608 to 8388607 (signed) or 0 to 16777215 (unsigned).For instance, you can use it to store the population of cities or the number of views of a very popular video. Example:
 
-        ```
+        ```sql
         CREATE TABLE example_mediumint (
             id INT AUTO_INCREMENT PRIMARY KEY,
             views MEDIUMINT NOT NULL
@@ -100,7 +102,7 @@ Numeric data types are used to store numbers, either whole numbers (integers) or
 
     - `INT` or `INTEGER`: A standard-size integer with a range of -2147483648 to 2147483647 (signed) or 0 to 4294967295 (unsigned). It’s used for identifiers, counters, and other use cases where a large range might be necessary. Here’s how to use INT:
 
-        ```
+        ```sql
         CREATE TABLE example_int (
             id INT AUTO_INCREMENT PRIMARY KEY,
             total_orders INT NOT NULL
@@ -113,7 +115,7 @@ Numeric data types are used to store numbers, either whole numbers (integers) or
 
     - `BIGINT`: A large integer with a range of -9223372036854775808 to 9223372036854775807 (signed) or 0 to 18446744073709551615 (unsigned). BIGINT is used for very large integers and is often seen in databases requiring a vast numerical range, such as for high-volume financial applications or scientific computations. Here’s an example at play:
 
-        ```
+        ```sql
         CREATE TABLE example_bigint (
             id INT AUTO_INCREMENT PRIMARY KEY,
             stars_count BIGINT NOT NULL
@@ -127,89 +129,93 @@ Numeric data types are used to store numbers, either whole numbers (integers) or
   - Range depends on subtype and sign (e.g., `INT` ranges from -2,147,483,648 to 2,147,483,647 for signed).
 
 - **DECIMAL (NUMERIC):**
+
   - Stores exact numeric values with fixed precision and scale.
   - Precision refers to the total number of digits, and scale refers to the number of digits after the decimal point.
   - Example: `DECIMAL(10, 2)` can store values like 12345678.90.
 
-        ```
-        CREATE TABLE example_numeric (
+    ```sql
+    CREATE TABLE example_numeric (
             id INT AUTO_INCREMENT PRIMARY KEY,
             price DECIMAL(10, 2) NOT NULL,
             weight NUMERIC (8, 3) NOT NULL
         );
 
-        INSERT INTO example_decimal (price, weight) VALUES
+    INSERT INTO example_decimal (price, weight) VALUES
 
-        (1234567.89, 75.250), (9876.54, 100.750), (123.45, 0.500);
+    (1234567.89, 75.250), (9876.54, 100.750), (123.45, 0.500);
         
-        SELECT * FROM example_decimal;
-        ```
+    SELECT * FROM example_decimal;
+    ```
 
 - **FLOAT:**
+
   - Stores approximate numeric values with floating-point precision.
   - Less precise than `DECIMAL`, but more storage-efficient.
   - Used for scientific calculations.
 
-        ```
-        CREATE TABLE example_float (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            temperature FLOAT NOT NULL
-        );
+    ```sql
+    CREATE TABLE example_float (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        measurement FLOAT NOT NULL
+    );
 
-        INSERT INTO example_float (temperature) VALUES 
-        (98.6),
-        (-40.5),
-        (212.0);
+    INSERT INTO example_float (measurement) VALUES 
+    (3.14), (2.71828), (1.61803);
 
-        SELECT * FROM example_float;
-        ```
+    SELECT * FROM example_float;
+    ```
 
 - **DOUBLE:**
+
   - Similar to `FLOAT`, but with double the precision.
   - Suitable for applications requiring high precision in calculations.
 
-        ```
-        CREATE TABLE example_double (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            scientific_calculation DOUBLE NOT NULL
-        );
+    ```sql
+    CREATE TABLE example_double (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        measurement DOUBLE NOT NULL
+    );
 
-        INSERT INTO example_double (scientific_calculation) VALUES 
-        (1.7976931348623157E308), (2.2250738585072014E-308), (3.141592653589793);
+    INSERT INTO example_double (measurement) VALUES 
+    (3.141592653589793), (2.718281828459045), (1.618033988749895);
 
-        SELECT * FROM example_double;
-        ```
+    SELECT * FROM example_double;
+    ```
 
 - **BIT:**
+
   - Stores binary values (0 or 1).
   - Used for boolean or binary data.
 
-        ```
-        CREATE TABLE example_bit (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            is_active BIT(1) NOT NULL,
-            flags BIT(3) NOT NULL
-        );
+    ```sql
+    CREATE TABLE example_bit (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        is_active BIT(1) NOT NULL,
+        flags BIT(3) NOT NULL
+    );
 
-        INSERT INTO example_bit (is_active, flags) VALUES 
-        (b'1', b'101'), (b'0', b'010'), (b'1', b'111');
+    INSERT INTO example_bit (is_active, flags) VALUES 
+    (b'1', b'101'), (b'0', b'010'), (b'1', b'111');
 
-        SELECT 
-            id, 
-            is_active, 
-            flags,
-            BIN(flags) AS flags_binary
-        FROM example_bit;
-        ```
+    SELECT 
+        id, 
+        is_active, 
+        flags,
+        BIN(flags) AS flags_binary
+    FROM example_bit;
+    ```
+
 ### 2. Character String Data Types
 
 Character string data types are used to store alphanumeric text.
 
 - **CHAR(n):**
+
     - Fixed-length string. Always uses the same amount of space, padding with spaces if necessary.
     - Use Case: CHAR is ideal for storing data that has a consistent length, such as country codes, or fixed-length codes like a two-character state abbreviation.
 
-    ```
+    ```sql
     CREATE TABLE example_char (
         id INT AUTO_INCREMENT PRIMARY KEY,
         country_code CHAR(2) NOT NULL
@@ -220,10 +226,11 @@ Character string data types are used to store alphanumeric text.
     ```
 
 - **VARCHAR(n):**
+
     - Variable-length string. More flexible and space-efficient than CHAR.
     - Use Case: `VARCHAR` is suitable for storing data with varying lengths, such as names, email addresses, or descriptions.
 
-    ```
+    ```sql
     CREATE TABLE example_varchar (
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(50) NOT NULL
@@ -234,13 +241,14 @@ Character string data types are used to store alphanumeric text.
     ```
 
 - **TEXT:**
+
     - Stores large amounts of text data. Does not require a length to be specified.
     - Use Case: TEXT is useful for storing large texts like articles, comments, or descriptions where the length may be unpredictable.
     - Different subtypes include `TINYTEXT`, `TEXT`, `MEDIUMTEXT`, and `LONGTEXT` based on size.
 
         - `TINYTEXT` can store number of characters up to 255 ( 2^8 = 256, 1 byte overhead). In practice, you use TINYTEXT for the column that requires less than 255 characters, has inconsistent length, and does not require sorting. For example, you can use the TINYTEXT to store the excerpt of a blog post.
 
-        ```
+        ```sql
         CREATE TABLE articles (
             id INT AUTO_INCREMENT PRIMARY KEY,
             title VARCHAR(255),
@@ -250,7 +258,7 @@ Character string data types are used to store alphanumeric text.
 
         - `TEXT` data type can hold up to 64 KB which is equivalent to 65535 (2^16 – 1) characters. The TEXT datatype also requires 2 bytes overhead.
 
-        ```
+        ```sql
         ALTER TABLE articles 
         ADD COLUMN body TEXT NOT NULL
         AFTER summary;
@@ -258,7 +266,7 @@ Character string data types are used to store alphanumeric text.
         
         - `MEDIUMTEXT` can hold up to 16MB text data which is equivalent to 16,777,215 characters. It requires 3 bytes overhead. The MEDIUMTEXT is useful for storing quite large text data like the text of a book, white papers, etc. For example:
         
-        ```
+        ```sql
         CREATE TABLE whitepapers (
             id INT AUTO_INCREMENT PRIMARY KEY,
             body MEDIUMTEXT NOT NULL,
@@ -273,9 +281,10 @@ Character string data types are used to store alphanumeric text.
 Binary data types are used to store binary data such as images, files, or encrypted data.
 
 - **BINARY(n):**
+
     - Fixed-length binary data. Similar to CHAR, but stores binary bytes instead of characters. `BINARY` is suitable for storing fixed-length binary data such as encrypted values or hashes.
 
-    ```
+    ```sql
     CREATE TABLE example_binary (
         id INT AUTO_INCREMENT PRIMARY KEY,
         hash BINARY(16) NOT NULL
@@ -285,9 +294,10 @@ Binary data types are used to store binary data such as images, files, or encryp
     ```
 
 - **VARBINARY(n):**
+
     - Variable-length binary data. Similar to VARCHAR, but stores binary bytes instead of characters. It is used for storing variable-length binary data like media files, images, or documents.
 
-    ```
+    ```sql
     CREATE TABLE example_varbinary (
         id INT AUTO_INCREMENT PRIMARY KEY,
         file_data VARBINARY(255) NOT NULL
@@ -299,32 +309,17 @@ Binary data types are used to store binary data such as images, files, or encryp
     ```
 
 - **BLOB (Binary Large Object):**
+
     - It’s used for storing binary data and for the columns of high-capacity binary storage. You can store any file type including PDF documents, MP3 Files and Video Files.
     - Different subtypes include `TINYBLOB`, `BLOB`, `MEDIUMBLOB`, and `LONGBLOB`.
     
         - `TINYBLOB` is used to store blob files of a maximum length of 255 (2^8 - 1) bytes. Each TINYBLOB value is stored using a one-byte length prefix that indicates the number of bytes in the value.
 
-        ```
-
-        ```
-        
         - `BLOB`: Maximum length of 65535 (2^16 - 1) bytes, or 64KB in storage. Each BLOB value is stored using a two-byte length prefix that indicates the number of bytes in the value.
-        
-        ```
-
-        ```
 
         - `MEDIUMBLOB`: Maximum length of 16777215 (2^24 - 1) bytes, or 16MB in storage. Each MEDIUMBLOB value is stored using a three-byte length prefix that indicates the number of bytes in the value.
-        
-        ```
-
-        ```
 
         - `LONGBLOB`: Maximum length of 4294967295 (2^32 - 1) bytes, or 4GB in storage. Each LONGBLOB value is stored using a four-byte length prefix that indicates the number of bytes in the value.
-
-        ```
-
-        ```
 
 ## 4. Date and Time Data Types
 
@@ -405,7 +400,8 @@ These data types are used to store predefined lists of values.
 
 
 Using the Spotflix example, a table can be created as shown below:
-```
+
+```sql
 CREATE TABLE employees (
     employee_id INT,
     first_name VARCHAR(255),
@@ -416,9 +412,10 @@ CREATE TABLE employees (
     office VARCHAR(255)
 );
 ```
+
 The next phase will be for data scientists. i.e, to get first and last name of employees with job title with key word 'Data',
 
-```
+```sql
 SELECT
     first_name, 
     last_name
@@ -427,9 +424,8 @@ WHERE role LIKE '%Data%'
 ```
 The database schema governs how tables are related as shown below
 
-```
-![Relationships Diagram](https://github.com/Ppius6/Data-Engineering/blob/master/SQL/Relationships.png)
-```
+
+![Relationships Diagram](Relationships.png)
 
 The SQL platforms include
 - SQLite
@@ -442,7 +438,7 @@ The SQL platforms include
 
 Example queries
 
-```
+```sql
 -- Getting the names in patrons table
 SELECT name
 FROM patrons;
@@ -469,7 +465,7 @@ A `view` is a virtual table that is the result of a saved SQL SELECT statement.
 
 When accessed, views automatically update in response to updates in the underlying data.
 
-```
+```sql
 -- Creating a view
 CREATE VIEW employee_hire_years AS
 SELECT id, name, year_hired
@@ -496,7 +492,7 @@ The differences are more of dialects, names used are not similar.
 ### COUNT()
 Counts the number of records with a value in a field
 
-```
+```sql
 -- Retrieving number of birth dates
 SELECT COUNT(birthdate) AS count_birthdates
 FROM people;
@@ -514,7 +510,7 @@ FROM people;
 
 It removes duplicates to return only unique values
 
-```
+```sql
 -- Languages in the films table, (unique languages)
 SELECT DISTINCT language
 FROM films;
@@ -523,11 +519,13 @@ FROM films;
 SELECT COUNT(DISTINCT birthdate) AS count_distinct_birthdates
 FROM people;
 ```
+
 - COUNT() includes duplicates
 - DISTINCT excludes duplicates
 
 How does SQL code work?
-```
+
+```sql
 -- order of execution
 SELECT name -- 2
 FROM people -- 1
@@ -543,7 +541,7 @@ It is a filtering clause. The operators include:
 - `<=` Less than or equal to
 - `<>` Not equal to
 
-```
+```sql
 SELECT title
 FROM films
 WHERE year > 2010;
@@ -555,7 +553,7 @@ WHERE country = 'Japan';
 ```
 
 ### Multiple Criteria - OR, AND, BETWEEN
-```
+```sql
 -- OR
 SELECT *
 FROM coats
@@ -573,7 +571,8 @@ WHERE buttons BETWEEN 1 AND 5;
 ```
 
 The `OR` operator is used when you need to satisfy at least one condition.
-```
+
+```sql
 - Example years 1994 or 2000
 SELECT title
 FROM films
@@ -583,7 +582,7 @@ WHERE release_year = 1994
 
 The `AND` operator is used when we need to satisfy the entire criteria.
 
-```
+```sql
 -- Titles of films released between 1994 and 2000
 SELECT title
 FROM films
@@ -599,7 +598,7 @@ WHERE release_year
 
 `AND` and `OR` can be combined. For example:
 
-```
+```sql
 -- Filter for films released in 1994 or 1995, and certified PG or R.
 
 SELECT title
@@ -610,7 +609,7 @@ WHERE (release_year = 1994 OR release_year = 1995)
 
 Using `BETWEEN`, `AND`, and `OR` together:
 
-```
+```sql
 SELECT title
 FROM films
 WHERE release_year
@@ -622,7 +621,7 @@ BETWEEN 1994 AND 2000 AND country = 'UK';
 `LIKE` is used with the `WHERE` clause to search for a pattern in a field. 
 - `%` is used to match zero, one, or many characters.
 
-```
+```sql
 -- This query matches people with Ade in their name
 SELECT name
 FROM people
@@ -631,7 +630,7 @@ WHERE name LIKE 'Ade%';
 
 - `_` matches a single character
 
-```
+```sql
 -- This query matches a single character
 SELECT name
 FROM people
@@ -640,7 +639,7 @@ WHERE name LIKE 'Ev_';
 
 - `NOT LIKE` is used to find records that do not match the specified pattern.
 
-```
+```sql
 SELECT name
 FROM people
 WHERE name NOT LIKE 'A.%';
@@ -648,14 +647,14 @@ WHERE name NOT LIKE 'A.%';
 
 Finding data position-wise:
 
-```
+```sql
 - Names ending with r
 SELECT name
 FROM people
 WHERE name LIKE '%r';
 ```
 
-```
+```sql
 - Names where third character is t
 SELECT name
 FROM people
@@ -665,7 +664,7 @@ WHERE name LIKE '%__t';
 ### WHERE IN
 Used to find data in specific years:
 
-```
+```sql
 -- Years
 SELECT title
 FROM films
@@ -683,7 +682,7 @@ Null represents a missing or unknown value.
 
 `IS NULL` is used to get the null values.
 
-```
+```sql
 -- Returning null birthdates
 SELECT name
 FROM people
@@ -692,7 +691,7 @@ WHERE birthdate IS NULL;
 
 `IS NOT NULL` is used to get results that are not null.
 
-```
+```sql
 -- Returns people whose birth dates are not missing
 SELECT COUNT(name) AS count_birthdates
 FROM people
@@ -709,7 +708,7 @@ They include, `AVG(), SUM(), MIN(), MAX(), COUNT()`
 
 It is recommend to use aliases. 
 
-```
+```sql
 -- Average
 SELECT AVG(budget) AS average_budget
 FROM films;
@@ -742,7 +741,7 @@ FROM films;
 
 `WHERE` can also be used in aggregates
 
-```
+```sql
 SELECT MAX(budget) AS max_budget
 FROM films
 WHERE release_year = 2010;
@@ -750,7 +749,7 @@ WHERE release_year = 2010;
 
 `ROUND` rounds a number to a specified decimal
 
-```
+```sql
 -- To two decimals
 SELECT ROUND(AVG(budget), 2) AS average_budget
 FROM films
@@ -773,7 +772,7 @@ WHERE release_year >= 2010;
 
 `ORDER BY` sorts results the results of one or more fields. It sorts from lowest to highest by default
 
-```
+```sql
 SELECT title, budget
 FROM films
 ORDER BY budget;
@@ -799,7 +798,7 @@ ORDER BY budget DESC;
 
 We can also sort by multiple fields considering field_two as a tie-breaker.
 
-```
+```sql
 ORDER BY field_one, field_two
 
 -- Example
@@ -822,7 +821,7 @@ LIMIT 3; - 5
 ### GROUP BY
 Data can also be grouped by a field.
 
-```
+```sql
 -- Grouping by a single field
 SELECT certification, COUNT(title) AS title_count
 FROM films
@@ -832,7 +831,7 @@ GROUP BY certification;
 
 It can also be used on multiple fields
 
-```
+```sql
 SELECT certification, language, COUNT(title) AS title_count
 FROM films
 GROUP BY certification, language;
@@ -840,7 +839,7 @@ GROUP BY certification, language;
 
 `GROUP BY` and `ORDER BY` can be combined. `ORDER BY` is always written after `GROUP BY`.
 
-```
+```sql
 SELECT
     certification,
     COUNT(title) AS title_count
@@ -854,7 +853,7 @@ LIMIT 3;
 When using the `GROUP BY` clause, `HAVING` is used to filter the data. This is due to the order of execution which is;
 
 
-```
+```sql
 SELECT
     certification,
     COUNT(title) AS title_count     -- 5
@@ -869,7 +868,7 @@ LIMIT 3;                            -- 7
 
 So, `WHERE` is executed before `GROUP BY` and before aggregation occurs. It is also the reason we cannot use an ALIAS with `HAVING` but can do so with `ORDER BY`.
 
-```
+```sql
 SELECT
     release_year,
     COUNT(title) AS title_count
@@ -884,7 +883,7 @@ HAVING COUNT(title) > 10;
 
 For instance, in the question what films were released in the year 2000? 
 
-```
+```sql
 SELECT title
 FROM films
 WHERE release_year = 2000;
@@ -892,7 +891,7 @@ WHERE release_year = 2000;
 
 In what years was the average film duration over two hours?
 
-```
+```sql
 SELECT release_year, AVG(duration) AS average_duration
 FROM films
 GROUP BY release_year
@@ -914,7 +913,7 @@ The resulting table after performing the INNER JOIN on the id field includes:
 - The first row includes `id` value 1 with `left_val` L1 from `left_table` and `right_val` R1 from `right_table`.
 - The second row includes `id` value 4 with `left_val` L4 from `left_table` and `right_val` R2 from `right_table`.
 
-```
+```sql
 -- Inner join of presidents and prime_ministers, joining on country
 
 SELECT prime_ministers.country, prime_ministers.continent, prime_minister, president
@@ -927,7 +926,7 @@ ON prime_ministers.country = presidents.country;
 
 Aliasing can be used on tables
 
-```
+```sql
 -- Inner join of presidents and prime_ministers, joining on country
 
 SELECT p1.country, p1.continent, prime_minister, president
@@ -938,7 +937,7 @@ ON p1.country = p2.country;
 
 ### Using USING
 
-```
+```sql
 -- Inner join of presidents and prime_ministers, joining on country
 
 SELECT p1.country, p1.continent, prime_minister, president
@@ -956,7 +955,7 @@ USING(country);
 
 ## Multiple Joins
 
-```
+```sql
 SELECT *
 FROM left_table
 INNER JOIN right_table
@@ -969,7 +968,7 @@ ON left_table.id = another_table.id;
 
 For instance, when seeking to find countries with both president and prime_minister, and year each prime_minister came into office:
 
-```
+```sql
 SELECT 
     p1.country, 
     p1.continent, 
@@ -986,7 +985,7 @@ USING (prime_minister);
 
 A second key is always used when there's a need to return results that match on both i.e, id and date
 
-```
+```sql
 SELECT *
 FROM left_table
 INNER JOIN right_table
