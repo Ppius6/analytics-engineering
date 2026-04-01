@@ -5,6 +5,7 @@
 An API (Application Programming Interface) is a set of rules and protocols that allows different software applications to communicate with each other. APIs enable developers to access the functionality of a service or application without needing to understand its internal workings. They are commonly used to retrieve data from web services, interact with databases, and integrate third-party services into applications.
 
 The most common types of APIs include:
+
 - **REST (Representational State Transfer)**: A popular architectural style for designing networked applications and is known for its simplicity and ease of use. It uses standard HTTP methods (`GET`, `POST`, `PUT`, `DELETE`) and is stateless. Stateless means that each request from a client to a server must contain all the information needed to understand and process the request, and the server does not store any information about the client's state between requests.
 
 - **SOAP (Simple Object Access Protocol)**: A protocol for exchanging structured information in web services. It relies on XML and is more rigid than REST. It takes a very formal approach and thus is used where robustness and strict protocols are required i.e., in enterprise applications.

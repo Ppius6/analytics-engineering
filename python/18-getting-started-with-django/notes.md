@@ -1668,4 +1668,448 @@ LOGOUT_REDIRECT_URL = 'learning_logs:index'
 
 By setting `LOGOUT_REDIRECT_URL` to `'learning_logs:index'`, we tell Django to redirect users to the home page of the learning logs app after they log out. 
 
-### The Registration Page
+### The Register Page
+
+We will build a page so new users can register. We will use Django's built-in `UserCreationForm` to handle the registration process, which simplifies our work significantly. We will define a URL pattern for the registration page, create a template for the registration form, and link to the registration page from the login page.
+
+#### The registration URL
+
+We will use `register` as the URL fragment for the registration page, so the URL for this page will be `http://localhost:8000/accounts/register/`. We add the following to `accounts/urls.py`:
+
+```python
+
+from django.urls import path, include
+
+from . import views
+
+app_name = "accounts"
+urlpatterns = [
+    # Snip previous code
+    # Registration page
+    path("register/", views.register, name="register"),
+]
+
+```
+
+#### The register() View Function
+
+The `register()` view function needs to display a blank registration form when the registration page is first requested, and process the submitted data when the form is submitted. If the submitted data is valid, it should create a new user account and log the user in.
+
+```python
+
+from django.contrib.auth import login
+from django.contrib.auth.forms import UserCreationForm
+from django.shortcuts import render, redirect
+
+def register(request):
+    """Register a new user."""
+    if request.method != "POST":
+        # Display a blank registration form.
+        form = UserCreationForm()
+    else:
+        # Process completed form.
+        form = UserCreationForm(data=request.POST)
+
+        if form.is_valid():
+            new_user = form.save()
+            # Log the user in and then redirect to home page.
+            login(request, new_user)
+            return redirect("learning_logs:index")
+        
+    # Display a blank or invalid form.
+    context = {'form': form}
+    return render(request, 'accounts/register.html', context)
+
+```
+
+In the above code, we first check the method of the request. If the method is not `POST`, this means the user is requesting the registration page for the first time, so we create a blank `UserCreationForm` and send it to the template in the context dictionary. If the method is `POST`, this means the user has submitted data, so we create a form instance with the submitted data and check if it is valid. If the form is valid, we save the new user to the database, log them in using Django's `login()` function, and redirect them to the home page. If the form is not valid, we skip the if block and render the page with the form containing error messages, allowing the user to correct their input and try again.
+
+#### The register Template
+
+Now, we create a template for the registration page which will be similar to the login template. We will make a file called `register.html` in the `accounts/templates/accounts/` directory.
+
+```html
+
+{% extends 'learning_logs/base.html' %}
+
+{% block content %}
+
+    <form action="{% url 'accounts:register' %}" method="post">
+        {% csrf_token %}
+        {{ form.as_div }}
+        
+        <button name="submit">Register</button>
+    </form>
+
+{% endblock content %}
+
+```
+
+The template extends `base.html` to maintain a consistent look and feel across the site. The form's action attribute is set to the URL for the registration page, which means that when the user submits the form, it will be sent to the `register()` view function for processing. The form fields are rendered as divs using `{{ form.as_div }}`, and a CSRF token is included for security. When the user fills out the registration form and clicks the `Register` button, their data will be processed by the `register()` view function, which will create a new user account if the data is valid, log them in, and redirect them to the home page. If there are any errors in the submitted data, the form will be re-rendered with error messages, allowing the user to correct their input and try again.
+
+#### Linking to the Register Page
+
+Next, we add a code to show the registration page link to any user who is not currently logged in. 
+
+```html
+<p>
+    <a href="{% url 'learning_logs:index' %}">Learning Log</a>
+    <a href="{% url 'learning_logs:topics' %}">Topics</a>
+    {% if user.is_authenticated %}
+        Hello, {{ user.username }}!
+    {% else %}
+        <a href="{% url 'accounts:register' %}">Log in</a>
+        <a href="{% url 'accounts:login' %}">Log in</a>
+    {% endif %}
+</p>
+
+{% block content %}{% endblock content %}
+
+{% if user.is_authenticated %}
+    <hr />
+    <form action="{% url 'accounts:logout' %}" method="post">
+        {% csrf_token %}
+        <button name="submit">Log out</button>
+    </form>
+{% endif %}
+
+```
+
+## Allowing Users to Own Their Data
+
+Users should be able to enter private data in their learning logs, so we will create a system to figure out which data belongs to which user. Then we will restrict access to certain pages so users can only work with their own data. 
+
+We will modify the `Topic` model so that every topic belongs to a specific user. This will also take care of entries because every entry belongs to a specific topic. 
+
+We will start by restricting access to certain pages.
+
+### Restricting Access with @login_required
+
+Django provides a decorator called `@login_required` that we can use to restrict access to certain views so only logged-in users can access them. We will use this decorator to restrict access to the topics page, the individual topic pages, and the pages for adding and editing topics and entries.
+
+### Restricting Access to the Topics Page
+
+Each topic will be owned by a user, so only registered users can request the topics page. We will add the `@login_required` decorator to the `topics()` view function in `views.py`:
+
+```python
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+
+from .models import Topic, Entry
+-- snip previous code --
+
+@login_required
+def topics(request):
+    """Show all topics."""
+    -- snip previous code --
+
+```
+
+By adding the `@login_required` decorator above the `topics()` function definition, we tell Django that this view should only be accessible to authenticated users. If an unauthenticated user tries to access this view, they will be redirected to the login page. Once they log in successfully, they will be redirected back to the topics page. This ensures that only registered users can see the list of topics and their associated entries.
+
+To make the redirection work properly, we need to set the `LOGIN_URL` variable in `settings.py` to point to the login page:
+
+```python
+
+-- snip previous code --
+# My settings
+LOGIN_REDIRECT_URL = 'learning_logs:index'
+LOGOUT_REDIRECT_URL = 'learning_logs:index'
+LOGIN_URL = 'accounts:login'
+
+```
+
+Now, when an unauthenticated user tries to access the topics page, they will be redirected to the login page specified by `LOGIN_URL`. After they log in successfully, they will be redirected back to the topics page, allowing them to see their topics and entries. This way, we ensure that only authenticated users can access the topics page and view their learning logs.
+
+### Restricting Access Throughout Learning Log
+
+Django makes it easy to restrict access to pages, but we have to decide which pages to protect. It is best to think about which pages need to be unrestricted first, and then restrict all the other pages in the project. 
+
+In our project, the only page that should be accessible to unauthenticated users is the home page. All other pages should be restricted so only logged-in users can access them. This means we need to add the `@login_required` decorator to all the view functions in `views.py` except for `index()`.
+
+```python
+
+from django.shortcuts import redirect, render
+from django.contrib.auth.decorators import login_required
+
+from .forms import EntryForm, TopicForm
+from .models import Entry, Topic
+
+
+def index(request):
+    """The home page for Learning Log"""
+    return render(request, "learning_logs/index.html")
+
+@login_required
+def topics(request):
+    -- snip --
+
+@login_required
+def topic(request, topic_id):
+    -- snip --
+
+@login_required
+    --snip--
+
+@login_required
+def new_entry(request, topic_id):
+    -- snip --
+
+
+@login_required
+def edit_entry(request, entry_id):
+    -- snip --
+
+```
+
+By adding the `@login_required` decorator to all the view functions except for `index()`, we ensure that only authenticated users can access the topics page, individual topic pages, and the pages for adding and editing topics and entries. Unauthenticated users will be redirected to the login page whenever they try to access any of these restricted pages. This way, we protect the user's data and ensure that only registered users can view and manage their learning logs.
+
+## Connecting Data to Certain Users
+
+Now that we have restricted access to certain pages, we need to connect the data in our database to specific users. We will modify the `Topic` model so that every topic belongs to a specific user. This will also take care of entries because every entry belongs to a specific topic.
+
+We will modify the `Topic` model to include a foreign key to the user model, which will allow us to associate each topic with a specific user. This way, we can ensure that users can only see and manage their own topics and entries.
+
+### Modifying the Topic Model
+
+To connect topics to specific users, we will modify the `Topic` model in `models.py` to include a foreign key to the user model. This will allow us to associate each topic with a specific user.
+
+```python
+
+from django.db import models
+from django.contrib.auth.models import User
+
+class Topic(models.Model):
+    """A topic the user is learning about."""
+
+    text = models.CharField(max_length=200)
+    date_added = models.DateTimeField(auto_now_add=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE) # New field to link topic to a user
+
+    def __str__(self):
+        """Return a string representation of the model."""
+        return self.text
+
+
+class Entry(models.Model):
+    """Something specific learned about a topic"""
+    --snip--
+
+```
+
+We import the `User` model from `django.contrib.auth.models` and add a new field called `owner` to the `Topic` model. This field is a foreign key that links each topic to a specific user. The `on_delete=models.CASCADE` argument means that if a user is deleted, all their associated topics will also be deleted.
+
+### Identifying Existing Users
+
+When we migrate the database, Django will modify the database so it can store a connection between each topic and a user. To make the migration, Django needs to know which user to associate with each existing topic. The simplest approach is to start by assigning all existing topics to one user, for example, the superuser we created when we set up the project. We can do this by running the following command in the terminal:
+
+```bash
+
+(python) pius@Piuss-MacBook-Pro learning_log_II % python manage.py shell
+14 objects imported automatically (use -v 2 for details).
+
+Cmd click to launch VS Code Native REPL
+Python 3.14.2 (main, Jan 14 2026, 23:37:46) [Clang 21.1.4 ] on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+(InteractiveConsole)
+>>> from django.contrib.auth.models import User
+>>> User.objects.all()
+<QuerySet [<User: pius>]>
+>>> for user in User.objects.all():
+...     print(user.username, user.id)
+... 
+pius 1
+
+```
+
+In the above code, we import the `User` model and then retrieve all user objects from the database. We print out the username and id of each user. In this case, we have one user with the username "pius" and an id of 1. We can use this id to associate all existing topics with this user in the next step.
+
+### Migrating the Database
+
+Now that we have the IDs, we can migrate the database. When we do this, Python will ask us to connect the `Topic` model to a particular owner temporarily or to add a default to our `models.py` file to tell it what to do. 
+
+We will choose to connect the `Topic` model to a particular owner temporarily. When prompted, we will enter the ID of the user we want to associate with all existing topics, which in this case is `1`.
+
+```bash
+
+(python) pius@Piuss-MacBook-Pro learning_log_II % python manage.py makemigrations learning_logs
+It is impossible to add a non-nullable field 'owner' to topic without specifying a default. This is because the database needs something to populate existing rows.
+Please select a fix:
+ 1) Provide a one-off default now (will be set on all existing rows with a null value for this column)
+ 2) Quit and manually define a default value in models.py.
+Select an option: 1
+Please enter the default value as valid Python.
+The datetime and django.utils.timezone modules are available, so it is possible to provide e.g. timezone.now as a value.
+Type 'exit' to exit this prompt
+>>> 1
+Migrations for 'learning_logs':
+  learning_logs/migrations/0003_topic_owner.py
+    + Add field owner to topic
+(python) pius@Piuss-MacBook-Pro learning_log_II %
+
+```
+
+By selecting option `1` and entering `1` as the default value, we tell Django to set the `owner` field of all existing topics to the user with ID `1`, which is the user "pius". After this migration, all existing topics will be associated with the user "pius", and any new topics created will need to be associated with a user as well. This allows us to connect our data to specific users and ensures that each user's topics are private to them.
+
+Now, we can run the `migrate` command to apply the changes to the database:
+
+```bash
+
+(python) pius@Piuss-MacBook-Pro learning_log_II % python manage.py migrate
+Operations to perform:
+  Apply all migrations: admin, auth, contenttypes, learning_logs, sessions
+Running migrations:
+  Applying learning_logs.0003_topic_owner... OK
+(python) pius@Piuss-MacBook-Pro learning_log_II % 
+
+```
+
+Django applies the new migration, and the result is OK. 
+
+We cann verify that the migration worked as expected in a shell session:
+
+```bash
+
+(python) pius@Piuss-MacBook-Pro learning_log_II % python manage.py shell
+14 objects imported automatically (use -v 2 for details).
+
+Cmd click to launch VS Code Native REPL
+Python 3.14.2 (main, Jan 14 2026, 23:37:46) [Clang 21.1.4 ] on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+(InteractiveConsole)
+>>> from learning_logs.models import Topic
+>>> for topic in Topic.objects.all():
+...     print(topic, topic.owner)
+... 
+Chess pius
+Rock Climbing pius
+Running pius
+Walking pius
+>>>
+
+```
+In the above code, we import the `Topic` model and then retrieve all topic objects from the database. We print out the name of each topic along with its associated owner. As we can see, all existing topics are now associated with the user "pius", confirming that the migration worked as expected.
+
+## Restricting Topics Access to Appropriate Users
+
+Currently, if you are logged in, you will be able to see all topics, no matter which user you are logged in as. We need to modify the `topics()` view function so it only retrieves topics owned by the currently logged-in user. This way, users will only see their own topics and entries. 
+
+In `learning_logs/views.py`:
+
+```python
+
+--snip previous code-
+@login_required
+def topics(request):
+    """Show all topics."""
+    topics = Topic.objects.filter(owner=request.user).order_by('date_added')
+    context = {'topics': topics}
+    return render(request, 'learning_logs/topics.html', context)
+--snip previous code--
+
+```
+
+When a user is logged in, the `request` object has a `request.user` attribute set which contains information about the currently logged-in user. The query `Topic.objects.filter(owner=request.user)` retrieves only the topics that are owned by the currently logged-in user. This way, when users access the topics page, they will only see their own topics and entries, ensuring that each user's data is private and secure. Because we are not changing how the topics are displayed, we do not need to change the template for the topics page at all.
+
+## Protecting a User's Topics
+
+We have not restricted access to the topic pages yet, so any registered user could try a bunch of URLs and retrieve topic pages that happen to match. We need to modify the `topic()`, `new_entry()`, and `edit_entry()` view functions so they check that the topic being accessed belongs to the currently logged-in user. If a user tries to access a topic that does not belong to them, we will raise an `Http404` exception, which will display a "Page Not Found" error message.
+
+In `learning_logs/views.py`:
+
+```python
+
+from django.shortcuts import redirect, render
+from django.contrib.auth.decorators import login_required
+from django.http import Http404
+
+--snip previous code-
+@login_required
+def topic(request, topic_id):
+    """Show a single topic and all its entries."""
+    topic = Topic.objects.get(id=topic_id)
+    if topic.owner != request.user:
+        raise Http404("Topic not found")
+
+    entries = topic.entry_set.order_by("-date_added")
+    context = {"topic": topic, "entries": entries}
+    return render(request, "learning_logs/topic.html", context)
+
+--snip previous code--
+
+```
+
+A `404 response` is a standard error response that is returned when a requested resource does not exist on a server. By raising an `Http404` exception when a user tries to access a topic that does not belong to them, we ensure that they will see a "Page Not Found" error message instead of being able to view or interact with the topic. This is an important security measure to protect users' data and maintain the privacy of their learning logs. We will need to add similar checks in the `new_entry()` and `edit_entry()` view functions to ensure that users can only add or edit entries for topics that they own.
+
+## Protecting the edit_entry() View Function
+
+The `edit_entry()` view function allows users to edit existing entries, so we need to ensure that users can only edit entries that belong to their own topics. We will modify the `edit_entry()` view function to check if the entry being edited belongs to a topic owned by the currently logged-in user. If not, we will raise an `Http404` exception.
+
+In `learning_logs/views.py`:
+
+```python
+
+--snip previous code--
+@login_required
+def edit_entry(request, entry_id):
+    """Edit an existing entry."""
+    entry = Entry.objects.get(id=entry_id)
+    topic = entry.topic
+
+    if topic.owner != request.user:
+        raise Http404("Entry not found")
+
+    if request.method != "POST":
+        # Initial request; pre-fill form with the current entry.
+        form = EntryForm(instance=entry)
+    else:
+        # POST data submitted; process data.
+        form = EntryForm(instance=entry, data=request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("learning_logs:topic", topic_id=topic.id)
+
+    context = {"entry": entry, "topic": topic, "form": form}
+    return render(request, "learning_logs/edit_entry.html", context)
+
+```
+
+We retrieve the entry being edited using its ID, and then we access the topic associated with that entry. We check if the owner of the topic is the same as the currently logged-in user. If they do not match, we raise an `Http404` exception, which will display a "Page Not Found" error message. This ensures that users can only edit entries that belong to their own topics, maintaining the privacy and security of their learning logs.
+
+## Associating New Topics and Entries with the Current User
+
+When users create new topics and entries, we need to ensure that these new objects are associated with the currently logged-in user. This way, when users view their topics and entries, they will only see the ones that belong to them.
+
+In the `new_topic()` view function, we will set the `owner` attribute of the new topic to the currently logged-in user before saving it to the database. In the `new_entry()` view function, we will ensure that the new entry is associated with a topic that belongs to the currently logged-in user.
+
+In `learning_logs/views.py`:
+
+```python
+
+--snip previous code--
+
+@login_required
+def new_topic(request):
+    """Add a new topic."""
+    if request.method != "POST":
+        # No data submitted; create a blank form.
+        form = TopicForm()
+    else:
+        # POST data submitted; process data.
+        form = TopicForm(data=request.POST)
+        if form.is_valid():
+            new_topic = form.save(commit=False)  # Create a new topic object but don't save it to the database yet
+            new_topic.owner = request.user  # Set the owner of the topic to the currently logged-in user
+            new_topic.save()  # Now save the topic to the database
+            return redirect("learning_logs:topics")
+
+    # Display a blank or invalid form.
+    context = {"form": form}
+    return render(request, "learning_logs/new_topic.html", context)
+
+--snip previous code--
+
+```
+
+When we first call `form.save()`, we pass `commit=False` to create a new topic object without saving it to the database immediately. This allows us to set the `owner` attribute of the new topic to the currently logged-in user before saving it. After setting the owner, we call `new_topic.save()` to save the topic to the database with the correct ownership information. This way, when users create new topics, they will be associated with their user account, and they will only see their own topics when they view the topics page. We will need to make similar adjustments in the `new_entry()` view function to ensure that new entries are also associated with topics that belong to the currently logged-in user.
