@@ -32,3 +32,6 @@ derby.log
 .idea/
 *.swp
 *.swo
+
+# Data Folder
+data/

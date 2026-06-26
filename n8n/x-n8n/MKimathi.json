@@ -1,0 +1,241 @@
+{
+    "name": "MKimathi Personal Draft Pipeline",
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "cronExpression",
+                            "expression": "0 0 6-18 * * *"
+                        }
+                    ]
+                }
+            },
+            "id": "node-trigger",
+            "name": "Every Hour 6am-6pm",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.1,
+            "position": [
+                240,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const feeds = [\n  { name: 'TechCrunch', url: 'https://techcrunch.com/feed/' },\n  { name: 'The Verge', url: 'https://www.theverge.com/rss/index.xml' },\n  { name: 'Ars Technica', url: 'https://feeds.arstechnica.com/arstechnica/index' },\n  { name: 'MIT Tech Review', url: 'https://www.technologyreview.com/feed/' },\n  { name: 'BBC Africa', url: 'https://feeds.bbci.co.uk/news/world/africa/rss.xml' },\n  { name: 'Quanta Magazine', url: 'https://api.quantamagazine.org/feed/' },\n  { name: 'Aeon', url: 'https://aeon.co/feed.rss' },\n  { name: 'AllAfrica', url: 'https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf' }\n];\nreturn feeds.map(feed => ({ json: feed }));"
+            },
+            "id": "node-sources",
+            "name": "Define RSS Sources",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                460,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "url": "={{ $json.url }}",
+                "options": {
+                    "timeout": 10000
+                }
+            },
+            "id": "node-fetch",
+            "name": "Fetch RSS Feeds",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                680,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const items = [];\nfor (const item of $input.all()) {\n  const body = item.json.data || item.json.body || '';\n  const sourceUrl = item.json.url || '';\n  let source = 'Unknown';\n  if (sourceUrl.includes('techcrunch')) source = 'TechCrunch';\n  else if (sourceUrl.includes('theverge')) source = 'The Verge';\n  else if (sourceUrl.includes('arstechnica')) source = 'Ars Technica';\n  else if (sourceUrl.includes('technologyreview')) source = 'MIT Tech Review';\n  else if (sourceUrl.includes('bbc')) source = 'BBC Africa';\n  else if (sourceUrl.includes('quantamagazine')) source = 'Quanta Magazine';\n  else if (sourceUrl.includes('aeon')) source = 'Aeon';\n  else if (sourceUrl.includes('allafrica')) source = 'AllAfrica';\n  const itemMatches = body.toString().match(/<item[^>]*>([\\s\\S]*?)<\\/item>/gi) || [];\n  const entryMatches = body.toString().match(/<entry[^>]*>([\\s\\S]*?)<\\/entry>/gi) || [];\n  const allMatches = [...itemMatches, ...entryMatches].slice(0, 5);\n  for (const block of allMatches) {\n    const title = (block.match(/<title>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/title>/) || [])[1] || '';\n    const link = (block.match(/<link[^>]*href=[\"']([^\"']+)[\"']/) || block.match(/<link>([\\s\\S]*?)<\\/link>/) || [])[1] || '';\n    const pubDate = (block.match(/<pubDate>([\\s\\S]*?)<\\/pubDate>/) || block.match(/<published>([\\s\\S]*?)<\\/published>/) || [])[1] || '';\n    const description = (block.match(/<description>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/description>/) || block.match(/<summary[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/summary>/) || [])[1] || '';\n    const cleanDesc = description.replace(/<[^>]+>/g, '').replace(/&[a-z]+;/gi, ' ').trim().slice(0, 300);\n    if (title && link) {\n      items.push({ json: { title: title.trim(), link: link.trim(), pubDate: pubDate.trim(), description: cleanDesc, source } });\n    }\n  }\n}\nreturn items;"
+            },
+            "id": "node-parse",
+            "name": "Parse RSS Articles",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                900,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const relevantKeywords = [\n  // Tech & AI\n  'ai', 'artificial intelligence', 'machine learning', 'data', 'algorithm', 'model', 'openai', 'google', 'microsoft', 'apple', 'meta', 'startup', 'funding', 'silicon valley', 'cloud', 'cybersecurity', 'robotics', 'quantum',\n  // Africa\n  'africa', 'african', 'kenya', 'nigeria', 'ghana', 'ethiopia', 'rwanda', 'nairobi', 'lagos', 'cairo', 'continent',\n  // Science & Philosophy\n  'science', 'research', 'study', 'discovery', 'universe', 'consciousness', 'philosophy', 'psychology', 'evolution', 'climate', 'space', 'physics', 'biology',\n  // Data & Economics\n  'economy', 'gdp', 'inflation', 'market', 'investment', 'billion', 'million', 'growth', 'jobs'\n];\nconst now = Date.now();\nconst filtered = [];\nfor (const item of $input.all()) {\n  const { title, description, pubDate } = item.json;\n  const text = (title + ' ' + description).toLowerCase();\n  const isRelevant = relevantKeywords.some(kw => text.includes(kw));\n  if (!isRelevant) continue;\n  if (pubDate) {\n    const articleTime = new Date(pubDate).getTime();\n    if (!isNaN(articleTime) && (now - articleTime) > 24 * 60 * 60 * 1000) continue;\n  }\n  filtered.push(item);\n}\nreturn filtered.length > 0 ? filtered : [];"
+            },
+            "id": "node-filter",
+            "name": "Filter Relevant Articles",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1120,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const workflowStaticData = $getWorkflowStaticData('global');\nif (!workflowStaticData.processedLinks) workflowStaticData.processedLinks = [];\nif (workflowStaticData.processedLinks.length > 500) {\n  workflowStaticData.processedLinks = workflowStaticData.processedLinks.slice(-500);\n}\nconst newItems = [];\nfor (const item of $input.all()) {\n  const link = item.json.link;\n  if (!workflowStaticData.processedLinks.includes(link)) {\n    workflowStaticData.processedLinks.push(link);\n    newItems.push(item);\n  }\n}\nreturn newItems.length > 0 ? newItems : [];"
+            },
+            "id": "node-dedup",
+            "name": "Deduplicate",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1340,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const results = [];\nfor (const item of $input.all()) {\n  const response = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'https://api.deepseek.com/v1/chat/completions',\n    headers: {\n      'Content-Type': 'application/json',\n      'Authorization': 'Bearer YOUR_DEEPSEEK_API_KEY'\n    },\n    body: {\n      model: 'deepseek-chat',\n      max_tokens: 500,\n      temperature: 0.9,\n      messages: [\n        {\n          role: 'system',\n          content: `You are the voice behind @MKimathi_ on X. You are a data professional based in Nairobi with deep interests in tech, AI, African history, philosophy, and science. Your tweets are sharp, curious, and data-driven. You read widely and have strong opinions. You mix intellectual depth with wit.\\n\\nRules:\\n- NEVER include URLs or hashtags\\n- Under 280 characters per tweet\\n- Write like a real person, not a press release\\n- Vary the style: sometimes a sharp stat, sometimes a hot take, sometimes a thought-provoking question\\n\\nGenerate exactly 3 tweet options:\\n1. DATA/FACT — lead with a striking number or fact\\n2. HOT TAKE — strong opinion or contrarian angle\\n3. THOUGHT — a curious observation or question that makes people think\\n\\nFormat exactly:\\n1. DATA/FACT\\n[tweet]\\n\\n2. HOT TAKE\\n[tweet]\\n\\n3. THOUGHT\\n[tweet]`\n        },\n        {\n          role: 'user',\n          content: 'Source: ' + item.json.source + ' | Headline: ' + item.json.title + ' | Summary: ' + item.json.description\n        }\n      ]\n    },\n    json: true\n  });\n  const content = response.choices?.[0]?.message?.content || '';\n  results.push({ json: { message: { content }, title: item.json.title, source: item.json.source } });\n}\nreturn results;"
+            },
+            "id": "node-deepseek",
+            "name": "Draft Tweets (DeepSeek)",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1560,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const allDrafts = $input.all();\nif (allDrafts.length === 0) return [];\nlet htmlBody = `<div style=\"font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto;\">\n  <h2 style=\"color: #1a1a2e; border-bottom: 2px solid #16213e; padding-bottom: 8px;\">✍️ @MKimathi_ Tweet Drafts — ${new Date().toLocaleString('en-KE', { timeZone: 'Africa/Nairobi' })} EAT</h2>\n  <p style=\"color: #666; font-size: 13px;\">${allDrafts.length} new stor${allDrafts.length === 1 ? 'y' : 'ies'} found. Pick your favorites and post manually.</p>`;\nfor (let i = 0; i < allDrafts.length; i++) {\n  const content = allDrafts[i].json.message?.content || '';\n  const source = allDrafts[i].json.source || '';\n  const title = allDrafts[i].json.title || '';\n  htmlBody += `<div style=\"background: #f9f9f9; border-left: 4px solid #16213e; padding: 16px; margin: 20px 0; border-radius: 4px;\">\n    <p style=\"font-size: 11px; color: #999; margin: 0 0 8px 0;\">SOURCE: ${source} — ${title}</p>\n    ${content.replace(/\\n/g, '<br>')}\n  </div>`;\n}\nhtmlBody += `<p style=\"color: #999; font-size: 12px; margin-top: 30px;\">Powered by MKimathi Draft Pipeline · n8n</p></div>`;\nreturn [{ json: { htmlBody, count: allDrafts.length } }];"
+            },
+            "id": "node-digest",
+            "name": "Build Email Digest",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1780,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "sendTo": "mutumakimathi5@gmail.com",
+                "subject": "=✍️ @MKimathi_ Drafts — {{ $json.count }} new stor{{ $json.count === 1 ? 'y' : 'ies' }} ready",
+                "emailType": "html",
+                "message": "={{ $json.htmlBody }}",
+                "options": {}
+            },
+            "id": "node-email",
+            "name": "Send Email",
+            "type": "n8n-nodes-base.gmail",
+            "typeVersion": 2.1,
+            "position": [
+                2000,
+                300
+            ],
+            "credentials": {
+                "gmailOAuth2": {
+                    "name": "Gmail OAuth2"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Every Hour 6am-6pm": {
+            "main": [
+                [
+                    {
+                        "node": "Define RSS Sources",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Define RSS Sources": {
+            "main": [
+                [
+                    {
+                        "node": "Fetch RSS Feeds",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Fetch RSS Feeds": {
+            "main": [
+                [
+                    {
+                        "node": "Parse RSS Articles",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Parse RSS Articles": {
+            "main": [
+                [
+                    {
+                        "node": "Filter Relevant Articles",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Filter Relevant Articles": {
+            "main": [
+                [
+                    {
+                        "node": "Deduplicate",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Deduplicate": {
+            "main": [
+                [
+                    {
+                        "node": "Draft Tweets (DeepSeek)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Draft Tweets (DeepSeek)": {
+            "main": [
+                [
+                    {
+                        "node": "Build Email Digest",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Build Email Digest": {
+            "main": [
+                [
+                    {
+                        "node": "Send Email",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1",
+        "saveManualExecutions": true
+    },
+    "staticData": null,
+    "tags": [
+        "personal",
+        "content",
+        "drafts"
+    ]
+}

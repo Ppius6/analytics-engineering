@@ -1,0 +1,5 @@
+# n8n local data — contains SQLite DB + encrypted credentials. Never commit.
+n8n_data/
+
+# macOS
+.DS_Store

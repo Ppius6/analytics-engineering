@@ -1,0 +1,213 @@
+{
+  "name": "TeslaHub Draft Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "name": "Every 15 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Define RSS feed sources\nconst feeds = [\n  { name: 'Electrek', url: 'https://electrek.co/feed/' },\n  { name: 'InsideEVs', url: 'https://insideevs.com/feed/' },\n  { name: 'Teslarati', url: 'https://www.teslarati.com/feed/' },\n  { name: 'Reuters Business', url: 'https://feeds.reuters.com/reuters/businessNews' }\n];\n\nreturn feeds.map(feed => ({ json: feed }));"
+      },
+      "id": "a1b2c3d4-0002-0002-0002-000000000002",
+      "name": "Define RSS Sources",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "a1b2c3d4-0003-0003-0003-000000000003",
+      "name": "Fetch RSS Feeds",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse RSS XML and extract articles\nconst items = [];\nconst sourceName = $input.item.json.headers ? '' : '';\n\nfor (const item of $input.all()) {\n  const body = item.json.data || item.json.body || '';\n  const sourceUrl = item.json.url || '';\n  \n  // Determine source name from URL\n  let source = 'Unknown';\n  if (sourceUrl.includes('electrek')) source = 'Electrek';\n  else if (sourceUrl.includes('insideevs')) source = 'InsideEVs';\n  else if (sourceUrl.includes('teslarati')) source = 'Teslarati';\n  else if (sourceUrl.includes('reuters')) source = 'Reuters';\n\n  // Extract <item> blocks from RSS XML\n  const itemMatches = body.toString().match(/<item[^>]*>([\\s\\S]*?)<\\/item>/gi) || [];\n  \n  for (const block of itemMatches.slice(0, 5)) { // max 5 per source\n    const title = (block.match(/<title>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/title>/) || [])[1] || '';\n    const link = (block.match(/<link>([\\s\\S]*?)<\\/link>/) || [])[1] || \n                 (block.match(/<guid[^>]*>([\\s\\S]*?)<\\/guid>/) || [])[1] || '';\n    const pubDate = (block.match(/<pubDate>([\\s\\S]*?)<\\/pubDate>/) || [])[1] || '';\n    const description = (block.match(/<description>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/description>/) || [])[1] || '';\n    \n    // Clean HTML from description\n    const cleanDesc = description.replace(/<[^>]+>/g, '').replace(/&[a-z]+;/gi, ' ').trim().slice(0, 300);\n    \n    if (title && link) {\n      items.push({\n        json: {\n          title: title.trim(),\n          link: link.trim(),\n          pubDate: pubDate.trim(),\n          description: cleanDesc,\n          source\n        }\n      });\n    }\n  }\n}\n\nreturn items;"
+      },
+      "id": "a1b2c3d4-0004-0004-0004-000000000004",
+      "name": "Parse RSS Articles",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filter: Tesla-relevant only + published in last 30 minutes\nconst teslaKeywords = [\n  'tesla', 'elon musk', 'model y', 'model 3', 'model s', 'model x',\n  'cybertruck', 'powerwall', 'megapack', 'supercharger', 'autopilot',\n  'full self-driving', 'fsd', 'gigafactory', 'dojo', 'optimus robot',\n  'tsla', 'elon', 'rivian', 'lucid', 'ev market'\n];\n\nconst now = Date.now();\nconst thirtyMinutes = 30 * 60 * 1000;\n\nconst filtered = [];\n\nfor (const item of $input.all()) {\n  const { title, description, pubDate, source } = item.json;\n  const text = (title + ' ' + description).toLowerCase();\n  \n  // Check Tesla relevance\n  const isRelevant = teslaKeywords.some(kw => text.includes(kw));\n  if (!isRelevant) continue;\n  \n  // Check recency (skip if pubDate is unparseable — include it anyway for non-Reuters)\n  if (pubDate) {\n    const articleTime = new Date(pubDate).getTime();\n    if (!isNaN(articleTime) && (now - articleTime) > thirtyMinutes) continue;\n  }\n  \n  filtered.push(item);\n}\n\nreturn filtered.length > 0 ? filtered : [];"
+      },
+      "id": "a1b2c3d4-0005-0005-0005-000000000005",
+      "name": "Filter Tesla Articles",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Deduplicate using workflow static data\nconst seen = $getWorkflowStaticData('global');\nif (!seen.processedLinks) seen.processedLinks = [];\n\n// Clean old entries (keep last 200)\nif (seen.processedLinks.length > 200) {\n  seen.processedLinks = seen.processedLinks.slice(-200);\n}\n\nconst newItems = [];\n\nfor (const item of $input.all()) {\n  const link = item.json.link;\n  if (!seen.processedLinks.includes(link)) {\n    seen.processedLinks.push(link);\n    newItems.push(item);\n  }\n}\n\n// Persist static data\n$setWorkflowStaticData('global', seen);\n\nreturn newItems.length > 0 ? newItems : [];"
+      },
+      "id": "a1b2c3d4-0006-0006-0006-000000000006",
+      "name": "Deduplicate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "model": "deepseek-chat",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are the content strategist for TeslaHubOnly (@TeslaHubOnly), a Tesla fan account on X focused on growing through high engagement.\n\nYour voice: Sharp, direct, fan-first. You have opinions. You're not a press release — you're the smartest Tesla fan in the room.\n\nRules:\n- NEVER include URLs or hashtags in tweets\n- Each tweet must be under 280 characters\n- No emojis unless they add punch (use sparingly)\n- No corporate-speak. Write like a real person\n- Make every tweet feel like it was written in the moment\n\nFor each story, generate exactly 3 tweet options:\n1. BREAKING — Fast, factual, adds one sharp insight\n2. HOT TAKE — Strong opinion or contrarian angle. Start with tension.\n3. MEME ANGLE — Witty, relatable, shareable. Tesla community humor.\n\nFormat your response EXACTLY like this (no extra text):\n\nSTORY: [story headline]\n\n1. BREAKING\n[tweet text]\n\n2. HOT TAKE\n[tweet text]\n\n3. MEME ANGLE\n[tweet text]\n\n---"
+            },
+            {
+              "role": "user",
+              "content": "=Source: {{ $json.source }}\nHeadline: {{ $json.title }}\nSummary: {{ $json.description }}\n\nGenerate 3 tweet options for this story."
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.85,
+          "maxTokens": 400
+        }
+      },
+      "id": "a1b2c3d4-0007-0007-0007-000000000007",
+      "name": "Draft Tweets (DeepSeek)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.4,
+      "position": [1560, 300],
+      "credentials": {
+        "openAiApi": {
+          "name": "DeepSeek API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combine all drafted tweets into one email digest\nconst allDrafts = $input.all();\n\nif (allDrafts.length === 0) return [];\n\nlet htmlBody = `\n<div style=\"font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto;\">\n  <h2 style=\"color: #cc0000; border-bottom: 2px solid #cc0000; padding-bottom: 8px;\">\n    🚗 TeslaHub Tweet Drafts — ${new Date().toLocaleString('en-KE', { timeZone: 'Africa/Nairobi' })} EAT\n  </h2>\n  <p style=\"color: #666; font-size: 13px;\">${allDrafts.length} new stor${allDrafts.length === 1 ? 'y' : 'ies'} found. Pick your favorites and post manually.</p>\n`;\n\nfor (let i = 0; i < allDrafts.length; i++) {\n  const content = allDrafts[i].json.message?.content || allDrafts[i].json.choices?.[0]?.message?.content || '';\n  \n  htmlBody += `\n  <div style=\"background: #f9f9f9; border-left: 4px solid #cc0000; padding: 16px; margin: 20px 0; border-radius: 4px;\">\n    ${content.replace(/\\n/g, '<br>').replace(/---/g, '<hr style=\"border:none;border-top:1px solid #ddd;\">')}\n  </div>`;\n}\n\nhtmlBody += `\n  <p style=\"color: #999; font-size: 12px; margin-top: 30px;\">Powered by TeslaHub Draft Pipeline · n8n</p>\n</div>`;\n\nreturn [{ json: { htmlBody, count: allDrafts.length } }];"
+      },
+      "id": "a1b2c3d4-0008-0008-0008-000000000008",
+      "name": "Build Email Digest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1780, 300]
+    },
+    {
+      "parameters": {
+        "sendTo": "mutumakimathi5@gmail.com",
+        "subject": "=🚗 TeslaHub Drafts — {{ $json.count }} new stor{{ $json.count === 1 ? 'y' : 'ies' }} ready",
+        "emailType": "html",
+        "message": "={{ $json.htmlBody }}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0009-0009-0009-000000000009",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [2000, 300],
+      "credentials": {
+        "gmailOAuth2": {
+          "name": "Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false
+          },
+          "conditions": [
+            {
+              "id": "cond1",
+              "leftValue": "={{ $input.all().length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ]
+        }
+      },
+      "id": "a1b2c3d4-0010-0010-0010-000000000010",
+      "name": "Any New Stories?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1560, 500]
+    }
+  ],
+  "connections": {
+    "Every 15 Minutes": {
+      "main": [
+        [{ "node": "Define RSS Sources", "type": "main", "index": 0 }]
+      ]
+    },
+    "Define RSS Sources": {
+      "main": [
+        [{ "node": "Fetch RSS Feeds", "type": "main", "index": 0 }]
+      ]
+    },
+    "Fetch RSS Feeds": {
+      "main": [
+        [{ "node": "Parse RSS Articles", "type": "main", "index": 0 }]
+      ]
+    },
+    "Parse RSS Articles": {
+      "main": [
+        [{ "node": "Filter Tesla Articles", "type": "main", "index": 0 }]
+      ]
+    },
+    "Filter Tesla Articles": {
+      "main": [
+        [{ "node": "Deduplicate", "type": "main", "index": 0 }]
+      ]
+    },
+    "Deduplicate": {
+      "main": [
+        [{ "node": "Draft Tweets (DeepSeek)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Draft Tweets (DeepSeek)": {
+      "main": [
+        [{ "node": "Build Email Digest", "type": "main", "index": 0 }]
+      ]
+    },
+    "Build Email Digest": {
+      "main": [
+        [{ "node": "Send Email", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "tags": ["tesla", "content", "drafts"],
+  "meta": {
+    "instanceId": "teslahub-draft-pipeline-v1"
+  }
+}
