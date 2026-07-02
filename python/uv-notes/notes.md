@@ -10,15 +10,25 @@
 ## Creating Virtual Environments
 
 ```bash
-uv venv env                    # Create a virtual environment
-uv venv env --python 3.11      # Specify Python version
+uv venv                        # Create a virtual environment
+uv venv --python 3.11      # Specify Python version
 ```
+
+```bash
+uv init --name <project_name> --python 3.11   # Create a project with a virtual environment
+```
+
+This option creates a new project directory with a virtual environment and a `pyproject.toml` file for dependency management.
+
+You then do not need to activate the virtual environment manually, as `uv` automatically handles it when you run commands within the project directory.
+
+You can then add dependencies to the `pyproject.toml` file using `uv add <package>` and manage them with `uv sync`. 
 
 ## Activation
 
 ```bash
-source env/bin/activate        # macOS/Linux
-env\Scripts\activate           # Windows
+source .venv/bin/activate        # macOS/Linux
+.venv\Scripts\activate           # Windows
 ```
 
 ## Project-Based Workflow with pyproject.toml

@@ -4,3 +4,16 @@
 
 # Windows Zone.Identifier alternate data stream files
 *:Zone.Identifier
+
+# macOS
+.DS_Store
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Local databases
+*.sqlite3
+
+# Editor-local settings
+.vscode/settings.json
