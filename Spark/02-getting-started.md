@@ -49,7 +49,12 @@ To write PySpark code, we must understand how Spark breaks down the code into un
 
 - `Stage`: A job is divided into stages. Stages are created based on operations that can be performed serially versus those that require a data shuffle.
 
+![Spark Stage](files/stages.png)
+
 - `Task`: The smallest unit of work. A task is sent to one executor. Each task maps to a single core and works on a single `partition` of data.
+
+![Spark Tasks](files/tasks.png)
+
 
 ## Transformation, Actions, and Lazy Evaluation
 
@@ -58,6 +63,8 @@ Spark operations fall into two categories.
 `Transformations (Lazy)`: Transformations transform a DataFrame into a new DataFrame without altering the original (immutability). Examples include `select(), filter(), groupBy()`
 
 - `Lazy Evaluation`: Spark does not execute these commands immediately. Instead, it records them as a `lineage` of instructions to be executed later. This allows Spark to look at the entire chain of transformations and optimize the execution plan.
+
+![Spark Lazy Evaluation](files/evaluation.png)
 
 `Actions (Eager)`: Actions trigger the lazy evaluation. They tell spark, "Okay, I am done defining the plan; now compute the result."
 
